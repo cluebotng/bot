@@ -1,20 +1,18 @@
 {
-    "name": "cluenet/cluebotng",
-    "description": "ClueBot NG - Anti-vandal bot For English Wikipedia",
+    "name": "cluebotng/bot",
+    "description": "ClueBot NG - Bot",
+    "require-dev": {
+        "overtrue/phplint": "@stable",
+        "squizlabs/php_codesniffer": "@stable",
+        "phpmd/phpmd" : "@stable"
+    },
     "require": {
-        "monolog/monolog": "^1.17",
-        "raven/raven": "^0.11.0"
+        "monolog/monolog": "^1.17"
     },
     "config": {
         "platform": {
-            "php": "7.2.31"
+            "php": "7.2"
         }
     },
-    "license": "GNU General Public License",
-    "authors": [
-        {
-            "name": "Damian Zaremba",
-            "email": "damian@damianzaremba.co.uk"
-        }
-    ]
+    "license": "GNU General Public License"
 }

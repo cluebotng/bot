@@ -1,0 +1,22 @@
+name: Release
+on:
+  push: {tags: ['*']}
+permissions:
+  deployments: write
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+
+      - name: Package the source
+        run: |
+          tar -cvf bot.tar.gz *
+
+      - name: Crease a release
+        uses: ncipollo/release-action@v1
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          artifacts: "bot.tar.gz"
