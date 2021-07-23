@@ -36,7 +36,6 @@ namespace CluebotNG;
         public static $cb_mysql_user = '';
         public static $cb_mysql_pass = '';
         public static $cb_mysql_db = 'cb';
-        public static $udpport = 3334;
         public static $coreport = 3565;
         public static $fork = true;
         public static $dry = false;

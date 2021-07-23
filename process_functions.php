@@ -105,8 +105,8 @@ class Process
         }
         $oftVand[$change['title']][] = time();
         file_put_contents('oftenvandalized.txt', serialize($oftVand));
-        $ircreport = "\x0315[[\x0307" . $change['title'] . "\x0315]] by \"\x0303" . $change['user'] .
-            "\x0315\" (\x0312 " . $change['url'] . " \x0315) \x0306" . $s . "\x0315 (";
+        $ircreport = "[[" . $change['title'] . "]] by \"" . $change['user'] .
+            "\" (" . $change['url'] . " )" . $s . " (";
         $change['mysqlid'] = Db::detectedVandalism(
             $change['user'],
             $change['title'],
@@ -123,9 +123,9 @@ class Process
             $rbret = Action::doRevert($change);
             if ($rbret !== false) {
                 $change['edit_status'] = 'reverted';
-                IRC::revert(
-                    $ircreport . "\x0304Reverted\x0315) (\x0313" . $revertReason .
-                    "\x0315) (\x0302" . (microtime(true) - $change['startTime']) . " \x0315s)"
+                $logger->addInfo(
+                    $ircreport . "Reverted) (" . $revertReason .
+                    ") (" . (microtime(true) - $change['startTime']) . " s)"
                 );
                 Action::doWarn($change, $report);
                 Db::vandalismReverted($change['mysqlid']);
@@ -134,9 +134,9 @@ class Process
                 $change['edit_status'] = 'beaten';
                 $rv2 = Api::$a->revisions($change['title'], 1);
                 if ($change['user'] != $rv2[0]['user']) {
-                    IRC::revert(
-                        $ircreport . "\x0303Not Reverted\x0315) (\x0313Beaten by " .
-                        $rv2[0]['user'] . "\x0315) (\x0302" . (microtime(true) - $change['startTime']) . " \x0315s)"
+                    $logger->addInfo(
+                        $ircreport . "Not Reverted) (Beaten by " .
+                        $rv2[0]['user'] . ") (" . (microtime(true) - $change['startTime']) . " s)"
                     );
                     Db::vandalismRevertBeaten($change['mysqlid'], $change['title'], $rv2[0]['user'], $change['url']);
                     Feed::bail($change, 'Beaten by ' . $rv2[0]['user'], $s);

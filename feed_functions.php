@@ -148,6 +148,7 @@ class Feed
 
     public static function bail($change, $why = '', $score = 'N/A', $reverted = false)
     {
+        global $logger;
         $rchange = $change;
         $rchange['edit_reason'] = $why;
         $rchange['edit_score'] = $score;

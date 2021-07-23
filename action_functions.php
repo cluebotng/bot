@@ -25,6 +25,7 @@ class Action
 {
     public static function doWarn($change, $report)
     {
+        global $logger;
         $warning = self::getWarningLevel($change['user'], $tpcontent) + 1;
         if (!Config::$dry) {
             if ($warning >= 4) {
@@ -32,7 +33,7 @@ class Action
                 self::aiv($change, $report);
             } else {
                 /* Warn them if they haven't been warned 4 times. */
-                IRC::debug("Warning " . $change['user'] . " (" . $warning . ")");
+                $logger->addInfo("Warning " . $change['user'] . " (" . $warning . ")");
                 self::warn($change, $report, $tpcontent, $warning);
             }
         }
@@ -74,9 +75,10 @@ class Action
 
     private static function aiv($change, $report)
     {
+        global $logger;
         $aivdata = Api::$q->getpage('Wikipedia:Administrator_intervention_against_vandalism/TB2');
         if (!preg_match('/' . preg_quote($change['user'], '/') . '/i', $aivdata)) {
-            IRC::debug(
+            $logger->addInfo(
                 '!admin Reporting [[User:' . $change['user'] .
                 ']] to [[WP:AIV]]. Contributions: [[Special:Contributions/' . $change['user'] .
                 ']] Block: [[Special:Blockip/' . $change['user'] . ']]'
@@ -153,6 +155,7 @@ class Action
 
     public static function shouldRevert($change)
     {
+        global $logger;
         $reason = 'Default revert';
         if (preg_match('/(assisted|manual)/iS', Config::$status)) {
             echo 'Revert [y/N]? ';
@@ -198,7 +201,7 @@ class Action
             return array(true, 'Angry-reverting on TFA');
         }
         if (preg_match('/\* \[\[(' . preg_quote($change['title'], '/') . ')\]\] \- .*/i', Globals::$aoptin)) {
-            IRC::debug('Angry-reverting [[' . $change['title'] . ']].');
+            $logger->addInfo('Angry-reverting [[' . $change['title'] . ']].');
 
             return array(true, 'Angry-reverting on angry-optin');
         }
