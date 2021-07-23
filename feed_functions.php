@@ -41,10 +41,6 @@ class Feed
         while (!feof(self::$fd)) {
             $rawline = fgets(self::$fd, 1024);
             $line = str_replace(array("\n", "\r"), '', $rawline);
-            if (!$line) {
-                fclose(self::$fd);
-                break;
-            }
             self::loop($line);
         }
     }
