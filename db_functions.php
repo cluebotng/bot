@@ -53,7 +53,8 @@ class Db
         checkMySQL();
         mysqli_query(
             Globals::$cb_mysql,
-            'UPDATE `vandalism` SET `reverted` = 1 WHERE `id` = \'' . mysqli_real_escape_string(Globals::$cb_mysql, $edit_id) . '\''
+            'UPDATE `vandalism` SET `reverted` = 1 WHERE `id` = \'' .
+            mysqli_real_escape_string(Globals::$cb_mysql, $edit_id) . '\''
         );
     }
 

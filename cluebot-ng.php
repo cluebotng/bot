@@ -41,6 +41,6 @@ date_default_timezone_set('UTC');
 doInit();
 IRC::init();
 
-for (; ;) {
+for (;;) {
     Feed::connectLoop();
 }

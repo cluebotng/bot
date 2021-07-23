@@ -124,13 +124,13 @@ class IRC
     {
         global $logger;
         $relay_node = Db::getCurrentRelayNode();
-        if(!isset($relay_node)) {
+        if (!isset($relay_node)) {
             $logger->addError("Could not get relay node. Failed to send: " . $message);
             return;
         }
         $logger->addInfo('Saying to ' . $channel . ': ' . $message);
         $udp = fsockopen('udp://' . $relay_node, Config::$udpport);
-        if($udp !== false) {
+        if ($udp !== false) {
             fwrite($udp, $channel . ':' . $message);
             fclose($udp);
         }

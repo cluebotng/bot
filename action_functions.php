@@ -42,13 +42,15 @@ class Action
     {
         $warning = 0;
         $content = Api::$q->getpage('User talk:' . $user);
-        if (preg_match_all(
-            '/<!-- Template:(uw-[a-z]*(\d)(im)?|Blatantvandal \(serious warning\)) -->.*' .
-            '(\d{2}):(\d{2}), (\d+) ([a-zA-Z]+) (\d{4}) \(UTC\)/iU',
-            $content,
-            $match,
-            PREG_SET_ORDER
-        )) {
+        if (
+            preg_match_all(
+                '/<!-- Template:(uw-[a-z]*(\d)(im)?|Blatantvandal \(serious warning\)) -->.*' .
+                '(\d{2}):(\d{2}), (\d+) ([a-zA-Z]+) (\d{4}) \(UTC\)/iU',
+                $content,
+                $match,
+                PREG_SET_ORDER
+            )
+        ) {
             foreach ($match as $m) {
                 $month = array(
                     'January' => 1, 'February' => 2, 'March' => 3,
@@ -139,7 +141,6 @@ class Action
         $rbret = Api::$a->rollback(
             $change['title'],
             $change['user'],
-            /*'Edit by [[Special:Contribs/' . $change['user'] . '|' . $change['user'] . ']] has been reverted by [[WP:CBNG|' . Config::$user . ']] due to possible noncompliance with Wikipedia guidelines. [[WP:CBFP|Report False Positive?]] (' . $change['mysqlid'] .') (Bot)'*/
             'Reverting possible vandalism by [[Special:Contribs/' . $change['user'] . '|' . $change['user'] . ']] ' .
             'to ' . (($revid == 0) ? 'older version' : 'version by ' . $revdata['user']) . '. ' .
             '[[WP:CBFP|Report False Positive?]] ' .
@@ -169,11 +170,12 @@ class Action
             return array(true, 'Angry-reverting in angry mode');
         }
         if ((time() - Globals::$tfas) >= 1800) {
-            if (preg_match(
-                '/\(\'\'\'\[\[([^|]*)\|more...\]\]\'\'\'\)/iU',
-                Api::$q->getpage('Wikipedia:Today\'s featured article/' . date('F j, Y')),
-                $tfam
-            )
+            if (
+                preg_match(
+                    '/\(\'\'\'\[\[([^|]*)\|more...\]\]\'\'\'\)/iU',
+                    Api::$q->getpage('Wikipedia:Today\'s featured article/' . date('F j, Y')),
+                    $tfam
+                )
             ) {
                 Globals::$tfas = time();
                 Globals::$tfa = $tfam[1];
@@ -201,7 +203,8 @@ class Action
             return array(true, 'Angry-reverting on angry-optin');
         }
         $titles = unserialize(file_get_contents('titles.txt'));
-        if (!isset($titles[$change['title'] . $change['user']])
+        if (
+            !isset($titles[$change['title'] . $change['user']])
             or ((time() - $titles[$change['title'] . $change['user']]) > (24 * 60 * 60))
         ) {
             $titles[$change['title'] . $change['user']] = time();
@@ -235,7 +238,7 @@ class Action
 
     public static function isWhitelisted($user)
     {
-        foreach(Globals::$wl as $wl) {
+        foreach (Globals::$wl as $wl) {
             if (preg_match('/^' . preg_quote($user, '/') . '$/', $wl)) {
                 return true;
             }

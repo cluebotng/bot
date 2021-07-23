@@ -42,7 +42,8 @@ class Http
         curl_setopt($this->ch, CURLOPT_ENCODING, '');
         curl_setopt($this->ch, CURLOPT_FORBID_REUSE, 1);
         curl_setopt($this->ch, CURLOPT_FRESH_CONNECT, 1);
-        if (isset(Config::$proxyhost) and isset(Config::$proxyport) and
+        if (
+            isset(Config::$proxyhost) and isset(Config::$proxyport) and
             (Config::$proxyport != null) and (Config::$proxyhost != null)
         ) {
             curl_setopt($this->ch, CURLOPT_PROXYTYPE, isset(Config::$proxytype) ? Config::$proxytype : CURLPROXY_HTTP);

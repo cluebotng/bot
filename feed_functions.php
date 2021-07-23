@@ -95,15 +95,16 @@ class Feed
                             }
                         }
                         foreach (Globals::$edit as $key => $value) {
-                            if (myfnmatch(
-                                str_replace('_', ' ', $key),
-                                str_replace(
-                                    '_',
-                                    ' ',
-                                    ($data['namespace'] == 'Main:' ? '' : $data['namespace']) .
-                                    $data['title']
+                            if (
+                                myfnmatch(
+                                    str_replace('_', ' ', $key),
+                                    str_replace(
+                                        '_',
+                                        ' ',
+                                        ($data['namespace'] == 'Main:' ? '' : $data['namespace']) .
+                                        $data['title']
+                                    )
                                 )
-                            )
                             ) {
                                 $stalkchannel = array_merge($stalkchannel, explode(',', $value));
                             }
@@ -120,7 +121,8 @@ class Feed
                                 break;
                         }
 
-                        if ($data['namespace'] != 'Main:' and
+                        if (
+                            $data['namespace'] != 'Main:' and
                             !preg_match(
                                 '/\* \[\[(' . preg_quote($data['namespace'] . $data['title'], '/') .
                                 ')\]\] \- .*/i',
@@ -154,6 +156,7 @@ class Feed
             return;
         }
 
-        IRC::spam($change['rawline'] . "\003 # " . $score . ' # ' . $why . ' # ' . ($reverted ? 'Reverted' : 'Not reverted'));
+        $logger->addInfo($change['rawline'] . " # " . $score .
+        ' # ' . $why . ' # ' . ($reverted ? 'Reverted' : 'Not reverted'));
     }
 }

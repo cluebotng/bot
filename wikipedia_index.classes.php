@@ -99,11 +99,13 @@ class WikipediaIndex
         if (preg_match('/' . preg_quote('{{bots|deny=all}}', '/') . '/iS', $rv[0]['*'])) {
             return false;
         }
-        if (preg_match(
-            '/' . preg_quote('{{bots|deny=', '/') . '(.*)' . preg_quote('}}', '/') . '/iS',
-            $rv[0]['*'],
-            $m
-        )) {
+        if (
+            preg_match(
+                '/' . preg_quote('{{bots|deny=', '/') . '(.*)' . preg_quote('}}', '/') . '/iS',
+                $rv[0]['*'],
+                $m
+            )
+        ) {
             if (in_array(explode(',', $m[1]), Config::$user)) {
                 return false;
             }
@@ -144,8 +146,7 @@ class WikipediaIndex
         $maxlag = null,
         $mlkg = null,
         $bot = true
-    )
-    {
+    ) {
         $post['wpSection'] = '';
         $post['wpScrolltop'] = '';
         if ($minor == true) {
@@ -216,12 +217,14 @@ class WikipediaIndex
             urlencode($id) . '&oldid=' . urlencode($oldid) . '&diffonly=1'
         );
 
-        if (preg_match_all(
-            '/\&amp\;(oldid\=)(\d*)\\\'\>(Revision as of|Current revision as of)/USs',
-            $html,
-            $m,
-            PREG_SET_ORDER
-        )) {
+        if (
+            preg_match_all(
+                '/\&amp\;(oldid\=)(\d*)\\\'\>(Revision as of|Current revision as of)/USs',
+                $html,
+                $m,
+                PREG_SET_ORDER
+            )
+        ) {
             if ((($oldid != $m[0][2]) and (is_numeric($oldid))) or (($id != $m[1][2]) and (is_numeric($id)))) {
                 if ($wait == true) {
                     sleep(1);
@@ -237,23 +240,27 @@ class WikipediaIndex
             }
         }
 
-        if (preg_match_all(
-            '/\<td class\=(\"|\\\')diff-addedline\1\>\<div\>(.*)\<\/div\>\<\/td\>/USs',
-            $html,
-            $m,
-            PREG_SET_ORDER
-        )) {
+        if (
+            preg_match_all(
+                '/\<td class\=(\"|\\\')diff-addedline\1\>\<div\>(.*)\<\/div\>\<\/td\>/USs',
+                $html,
+                $m,
+                PREG_SET_ORDER
+            )
+        ) {
             foreach ($m as $x) {
                 $added .= htmlspecialchars_decode(strip_tags($x[2])) . "\n";
             }
         }
 
-        if (preg_match_all(
-            '/\<td class\=(\"|\\\')diff-deletedline\1\>\<div\>(.*)\<\/div\>\<\/td\>/USs',
-            $html,
-            $m,
-            PREG_SET_ORDER
-        )) {
+        if (
+            preg_match_all(
+                '/\<td class\=(\"|\\\')diff-deletedline\1\>\<div\>(.*)\<\/div\>\<\/td\>/USs',
+                $html,
+                $m,
+                PREG_SET_ORDER
+            )
+        ) {
             foreach ($m as $x) {
                 $deleted .= htmlspecialchars_decode(strip_tags($x[2])) . "\n";
             }

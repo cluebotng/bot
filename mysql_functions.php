@@ -51,7 +51,6 @@ function checkRepMySQL()
             Config::$mw_mysql_pass,
             Config::$mw_mysql_db,
             Config::$mw_mysql_port
-
         );
         if (!Globals::$mw_mysql) {
             die('replica mysql error: ' . mysqli_connect_error());
@@ -90,7 +89,8 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         '" ORDER BY `rev_id` LIMIT 1'
     );
     if ($res === false) {
-        $logger->addWarning("page metadata query returned no data for " . $title . " (" . $nsid . "): ". mysqli_error(Globals::$mw_mysql));
+        $logger->addWarning("page metadata query returned no data for " . $title .
+                            " (" . $nsid . "): " . mysqli_error(Globals::$mw_mysql));
     } else {
         $d = mysqli_fetch_assoc($res);
         $data['common']['page_made_time'] = $d['rev_timestamp'];
@@ -109,7 +109,8 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         mysqli_real_escape_string(Globals::$mw_mysql, $timestamp) . '"'
     );
     if ($res === false) {
-        $logger->addWarning("page recent edits query returned no data for " . $title . " (" . $nsid . ") > " . $timestamp . ": ". mysqli_error(Globals::$mw_mysql));
+        $logger->addWarning("page recent edits query returned no data for " . $title .
+                            " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error(Globals::$mw_mysql));
     } else {
         $d = mysqli_fetch_assoc($res);
         $data['common']['num_recent_edits'] = $d['count'];
@@ -128,12 +129,14 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         "' AND `comment_text` LIKE 'Revert%'"
     );
     if ($res === false) {
-        $logger->addWarning("page recent reverts query returned no data for " . $title . " (" . $nsid . ") > " . $timestamp . ": ". mysqli_error(Globals::$mw_mysql));
+        $logger->addWarning("page recent reverts query returned no data for " . $title .
+                            " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error(Globals::$mw_mysql));
     } else {
         $d = mysqli_fetch_assoc($res);
         $data['common']['num_recent_reversions'] = $d['count'];
     }
-    if (filter_var($user, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ||
+    if (
+        filter_var($user, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ||
         filter_var($user, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
     ) {
         $data['user_reg_time'] = time();
@@ -145,7 +148,8 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             mysqli_real_escape_string(Globals::$mw_mysql, $user) . '"'
         );
         if ($res === false) {
-            $logger->addWarning("user edit count query returned no data for (invalid ip) " . $user . ": ". mysqli_error(Globals::$mw_mysql));
+            $logger->addWarning("user edit count query returned no data for (invalid ip) " .
+                                $user . ": " . mysqli_error(Globals::$mw_mysql));
         } else {
             $d = mysqli_fetch_assoc($res);
             $data['user_edit_count'] = $d['user_editcount'];
@@ -158,7 +162,8 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         );
         $d = mysqli_fetch_assoc($res);
         if ($res === false) {
-            $logger->addWarning("user registration query returned no data for " . $user . ": ". mysqli_error(Globals::$mw_mysql));
+            $logger->addWarning("user registration query returned no data for " .
+                                $user . ": " . mysqli_error(Globals::$mw_mysql));
         } else {
             $data['user_reg_time'] = $d['user_registration'];
         }
@@ -171,7 +176,8 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
                 mysqli_real_escape_string(Globals::$mw_mysql, $user) . '" ORDER BY `rev_timestamp` LIMIT 0,1'
             );
             if ($res === false) {
-                $logger->addWarning("user registration via revision query returned no data for " . $user . ": ". mysqli_error(Globals::$mw_mysql));
+                $logger->addWarning("user registration via revision query returned no data for " .
+                                    $user . ": " . mysqli_error(Globals::$mw_mysql));
             } else {
                 $d = mysqli_fetch_assoc($res);
                 $data['user_reg_time'] = $d['rev_timestamp'];
@@ -183,7 +189,8 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             mysqli_real_escape_string(Globals::$mw_mysql, $user) . '"'
         );
         if ($res === false) {
-            $logger->addWarning("user edit count query returned no data for " . $user . ": ". mysqli_error(Globals::$mw_mysql));
+            $logger->addWarning("user edit count query returned no data for " .
+                                $user . ": " . mysqli_error(Globals::$mw_mysql));
         } else {
             $d = mysqli_fetch_assoc($res);
             $data['user_edit_count'] = $d['user_editcount'];
@@ -200,7 +207,8 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         " LIKE 'General note: Nonconstructive%')"
     );
     if ($res === false) {
-        $logger->addWarning("user warnings query returned no data for " . $userPage . ": ". mysqli_error(Globals::$mw_mysql));
+        $logger->addWarning("user warnings query returned no data for " .
+                            $userPage . ": " . mysqli_error(Globals::$mw_mysql));
     } else {
         $d = mysqli_fetch_assoc($res);
         $data['user_warns'] = $d['count'];

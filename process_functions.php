@@ -26,7 +26,8 @@ class Process
     public static function processEdit($change)
     {
         global $logger;
-        if ((time() - Globals::$tfas) >= 1800 and
+        if (
+            (time() - Globals::$tfas) >= 1800 and
             preg_match(
                 '/\(\'\'\'\[\[([^|]*)\|more...\]\]\'\'\'\)/iU',
                 Api::$q->getpage('Wikipedia:Today\'s featured article/' . date('F j, Y')),

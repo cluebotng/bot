@@ -133,8 +133,7 @@ class WikipediaApi
         $start = null,
         $end = null,
         $dir = 'older'
-    )
-    {
+    ) {
         $append = '';
         if ($user != null) {
             $append .= '&leuser=' . urlencode($user);
@@ -398,8 +397,7 @@ class WikipediaApi
         $wpStarttime = null,
         $wpEdittime = null,
         $checkrun = true
-    )
-    {
+    ) {
         global $logger;
         $wpq = new WikipediaQuery();
         $wpq->queryurl = str_replace('api.php', 'query.php', $this->apiurl);
@@ -643,8 +641,7 @@ class WikipediaApi
         $getrbtok = false,
         $dieonerror = true,
         $redirects = false
-    )
-    {
+    ) {
         $x = $this->http->get(
             $this->apiurl . '?action=query&rawcontinue=1&prop=revisions&titles=' .
             urlencode($page) . '&rvlimit=' . urlencode($count) . '&rvprop=timestamp|ids|user|comment' .
@@ -697,7 +694,8 @@ class WikipediaApi
             $data['revisions']['ns'] = $data['ns'];
             $data['revisions']['title'] = $data['title'];
             $data['revisions']['currentuser'] = $x['query']['userinfo']['name'];
-            if (array_key_exists('query-continue', $x) &&
+            if (
+                array_key_exists('query-continue', $x) &&
                 array_key_exists('revisions', $x['query-continue']) &&
                 array_key_exists('rvstartid', $x['query-continue']['revisions'])
             ) {

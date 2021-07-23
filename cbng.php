@@ -33,13 +33,16 @@ function namespace2name($nsid)
 
 function parseFeed($feed)
 {
-    if (preg_match(
-        '/^\[\[((Talk|User|Wikipedia|File|MediaWiki|Template|Help|Category|Portal|Special|Book|Draft|TimedText|Module|Gadget|Gadget(?: |_)definition|Media)(( |_)talk)?:)?' .
-        '([^\x5d]*)\]\] (\S*) (https?:\/\/en\.wikipedia\.org\/w\/index\.php\?diff=(\d*)&oldid=(\d*).*|' .
-        'https?:\/\/en\.wikipedia\.org\/wiki\/\S+)? \* ([^*]*) \* (\(([^)]*)\))? (.*)$/S',
-        $feed,
-        $m
-    )) {
+    if (
+        preg_match(
+            '/^\[\[((Talk|User|Wikipedia|File|MediaWiki|Template|Help|Category' .
+            '|Portal|Special|Book|Draft|TimedText|Module|Gadget|Gadget(?: |_)definition|Media)(( |_)talk)?:)?' .
+            '([^\x5d]*)\]\] (\S*) (https?:\/\/en\.wikipedia\.org\/w\/index\.php\?diff=(\d*)&oldid=(\d*).*|' .
+            'https?:\/\/en\.wikipedia\.org\/wiki\/\S+)? \* ([^*]*) \* (\(([^)]*)\))? (.*)$/S',
+            $feed,
+            $m
+        )
+    ) {
         $change = array(
             'namespace' => $m[1] ? $m[1] : 'Main:',
             'namespaceid' => namespace2id($m[1] ? substr($m[1], 0, -1) : 'Main'),
@@ -187,7 +190,8 @@ function parseFeedData($feedData, $useOld = false)
     list($api) = getUrlsInParallel($urls);
     $api = current($api['query']['pages']);
     $cb = getCbData($feedData['user'], $feedData['namespaceid'], $feedData['title'], $feedData['timestamp']);
-    if (!(isset($cb['user_edit_count'])
+    if (
+        !(isset($cb['user_edit_count'])
         and isset($cb['user_distinct_pages'])
         and isset($cb['user_warns'])
         and isset($api['revisions'][1]['user'])
