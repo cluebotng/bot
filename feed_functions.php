@@ -154,6 +154,8 @@ class Feed
         }
 
         $logger->addInfo($change['rawline'] . " # " . $score .
-        ' # ' . $why . ' # ' . ($reverted ? 'Reverted' : 'Not reverted'));
+                         ' # ' . $why . ' # ' . ($reverted ? 'Reverted' : 'Not reverted'));
+        IRC::spam($change['rawline'] . "\003 # " . $score . ' # ' . $why .
+                  ' # ' . ($reverted ? 'Reverted' : 'Not reverted'));
     }
 }
