@@ -104,4 +104,30 @@ class IRC
         }
         self::$chans = $tmp;
     }
+
+    public static function spam($message)
+    {
+        return self::message('#wikipedia-en-cbngfeed', $message);
+    }
+
+    public static function revert($message)
+    {
+        return self::message('#wikipedia-en-cbngrevertfeed', $message);
+    }
+
+    private static function message($channel, $message)
+    {
+        global $logger;
+        $relay_node = Db::getCurrentIrcRelayNode();
+        if (!isset($relay_node)) {
+            $logger->addError("Could not get relay node. Failed to send: " . $message);
+            return;
+        }
+        $logger->addInfo('Saying to ' . $channel . ': ' . $message);
+        $udp = fsockopen('udp://' . $relay_node, Config::$udpport);
+        if ($udp !== false) {
+            fwrite($udp, $channel . ':' . $message);
+            fclose($udp);
+        }
+    }
 }

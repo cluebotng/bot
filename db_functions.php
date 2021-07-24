@@ -24,9 +24,9 @@ namespace CluebotNG;
 class Db
 {
     public static $coreNodeCache = 0;
-    public static $relayNodeCache = 0;
+    public static $ircRelayNodeCache = 0;
     public static $coreNode = null;
-    public static $relayNode = null;
+    public static $ircRelayNode = null;
 
     // Returns the edit it for the vandalism
     public static function detectedVandalism($user, $title, $heuristic, $reason, $url, $old_rev_id, $rev_id)
@@ -95,22 +95,22 @@ class Db
         return null;
     }
 
-    // Returns the hostname of the current relay node
-    public static function getCurrentRelayNode()
+    // Returns the hostname of the current IRC relay node
+    public static function getCurrentIrcRelayNode()
     {
-        if (self::$relayNodeCache > time() - 10 && self::$relayNode != null) {
-            return self::$relayNode;
+        if (self::$ircRelayNodeCache > time() - 10 && self::$ircRelayNode != null) {
+            return self::$ircRelayNode;
         }
 
         checkMySQL();
-        self::$relayNodeCache = time();
-        $res = mysqli_query(Globals::$cb_mysql, 'SELECT `node` from `cluster_node` where type="relay"');
+        self::$ircRelayNodeCache = time();
+        $res = mysqli_query(Globals::$cb_mysql, 'SELECT `node` from `cluster_node` where type="irc_relay"');
         if ($res !== false) {
             $d = mysqli_fetch_assoc($res);
-            self::$relayNode = $d['node'];
+            self::$ircRelayNode = $d['node'];
             return $d['node'];
         }
-        self::$relayNode = null;
+        self::$ircRelayNode = null;
         return null;
     }
 }
