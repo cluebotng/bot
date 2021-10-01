@@ -194,18 +194,28 @@ function parseFeedData($feedData, $useOld = false)
         !(isset($cb['user_edit_count'])
         and isset($cb['user_distinct_pages'])
         and isset($cb['user_warns'])
-        and isset($api['revisions'][1]['user'])
-        and isset($cb['user_reg_time'])
-        and isset($cb['common']['page_made_time'])
+        and isset($cb['user_reg_time']))
+    ) {
+        $logger->addError("Failed to get user info: " . var_export($feedData, true) . ", " . var_export($cb, true));
+        return false;
+    }
+    if (
+        !(isset($cb['common']['page_made_time'])
         and isset($cb['common']['creator'])
         and isset($cb['common']['num_recent_edits'])
-        and isset($cb['common']['num_recent_reversions'])
+        and isset($cb['common']['num_recent_reversions']))
+    ) {
+        $logger->addError("Failed to get common info: " . var_export($feedData, true) . ", " . var_export($cb, true));
+        return false;
+    }
+    if (
+        !(isset($api['revisions'][1]['user'])
         and isset($api['revisions'][0]['timestamp'])
         and isset($api['revisions'][0]['*'])
         and isset($api['revisions'][1]['timestamp'])
         and isset($api['revisions'][1]['*']))
     ) {
-        $logger->addError("Failed to get all edit info: " . var_export($feedData, true) . ", " . var_export($cb, true));
+        $logger->addError("Failed to get api info: " . var_export($feedData, true) . ", " . var_export($api, true));
         return false;
     }
     $data = array(
