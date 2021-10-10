@@ -25,8 +25,6 @@ class WikipediaApi
 {
     public $apiurl = 'https://en.wikipedia.org/w/api.php';
     private $http;
-    private $edittoken;
-    private $tokencache;
     private $user;
     private $pass;
 
@@ -54,6 +52,8 @@ class WikipediaApi
      **/
     public function recentchanges($count = 10, $namespace = null, $dir = 'older', $ts = null)
     {
+        global $logger;
+
         $append = '';
         if ($ts !== null) {
             $append .= '&rcstart=' . urlencode($ts);
@@ -67,6 +67,11 @@ class WikipediaApi
             '|flags|timestamp|title|ids|sizes&format=php&rclimit=' . $count . $append
         );
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('recentchanges API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
 
         return $x['query']['recentchanges'];
     }
@@ -85,6 +90,8 @@ class WikipediaApi
      **/
     public function search($search, $limit = 10, $offset = 0, $namespace = 0, $what = 'text', $redirs = false)
     {
+        global $logger;
+
         $append = '';
         if ($limit != null) {
             $append .= '&srlimit=' . urlencode($limit);
@@ -108,6 +115,11 @@ class WikipediaApi
             urlencode($search) . $append
         );
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('search API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
 
         return $x['query']['search'];
     }
@@ -134,6 +146,8 @@ class WikipediaApi
         $end = null,
         $dir = 'older'
     ) {
+        global $logger;
+
         $append = '';
         if ($user != null) {
             $append .= '&leuser=' . urlencode($user);
@@ -162,6 +176,11 @@ class WikipediaApi
         );
         $x = unserialize($x);
 
+        if (isset($x['warnings'])) {
+            $logger->addWarning('logs API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
+
         return $x['query']['logevents'];
     }
 
@@ -178,6 +197,8 @@ class WikipediaApi
      **/
     public function usercontribs($user, $count = 50, &$continue = null, $dir = 'older')
     {
+        global $logger;
+
         if ($continue != null) {
             $append = '&ucstart=' . urlencode($continue);
         } else {
@@ -188,6 +209,12 @@ class WikipediaApi
             urlencode($user) . '&uclimit=' . urlencode($count) . '&ucdir=' . urlencode($dir) . $append
         );
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('usercontribs API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
+
         $continue = $x['query-continue']['usercontribs']['ucstart'];
 
         return $x['query']['usercontribs'];
@@ -206,6 +233,8 @@ class WikipediaApi
      **/
     public function users($start = null, $limit = 1, $group = null, $requirestart = false, &$continue = null)
     {
+        global $logger;
+
         $append = '';
         if ($start != null) {
             $append .= '&aufrom=' . urlencode($start);
@@ -218,6 +247,11 @@ class WikipediaApi
             'blockinfo|editcount|registration|groups&aulimit=' . urlencode($limit) . $append
         );
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('users API returned warnings: ' . var_export($x['warnings'], true));
+        }
+
         $continue = $x['query-continue']['allusers']['aufrom'];
         if (($requirestart == true) and ($x['query']['allusers'][0]['name'] != $start)) {
             return false;
@@ -237,6 +271,8 @@ class WikipediaApi
      **/
     public function categorymembers($category, $count = 500, &$continue = null)
     {
+        global $logger;
+
         if ($continue != null) {
             $append = '&cmcontinue=' . urlencode($continue);
         } else {
@@ -248,6 +284,12 @@ class WikipediaApi
             urlencode($category) . '&format=php&cmlimit=' . $count . $append
         );
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('categorymembers API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
+
         $continue = $x['query-continue']['categorymembers']['cmcontinue'];
 
         return $x['query']['categorymembers'];
@@ -266,6 +308,8 @@ class WikipediaApi
      **/
     public function listcategories(&$start = null, $limit = 50, $dir = 'ascending', $prefix = null)
     {
+        global $logger;
+
         $append = '';
         if ($start != null) {
             $append .= '&acfrom=' . urlencode($start);
@@ -286,6 +330,11 @@ class WikipediaApi
         );
         $x = unserialize($x);
 
+        if (isset($x['warnings'])) {
+            $logger->addWarning('listcategories API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
+
         $start = $x['query-continue']['allcategories']['acfrom'];
 
         return $x['query']['allcategories'];
@@ -304,6 +353,8 @@ class WikipediaApi
      **/
     public function backlinks($page, $count = 500, &$continue = null, $filter = null)
     {
+        global $logger;
+
         if ($continue != null) {
             $append = '&blcontinue=' . urlencode($continue);
         } else {
@@ -318,6 +369,12 @@ class WikipediaApi
             urlencode($page) . '&format=php&bllimit=' . $count . $append
         );
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('backlinks API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
+
         $continue = $x['query-continue']['backlinks']['blcontinue'];
 
         return $x['query']['backlinks'];
@@ -334,6 +391,8 @@ class WikipediaApi
      **/
     public function embeddedin($page, $count = 500, &$continue = null)
     {
+        global $logger;
+
         if ($continue != null) {
             $append = '&eicontinue=' . urlencode($continue);
         } else {
@@ -344,6 +403,12 @@ class WikipediaApi
             urlencode($page) . '&format=php&eilimit=' . $count . $append
         );
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('embeddedin API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
+
         $continue = $x['query-continue']['embeddedin']['eicontinue'];
 
         return $x['query']['embeddedin'];
@@ -361,6 +426,8 @@ class WikipediaApi
      **/
     public function listprefix($prefix, $namespace = 0, $count = 500, &$continue = null)
     {
+        global $logger;
+
         $append = '&apnamespace=' . urlencode($namespace);
         if ($continue != null) {
             $append .= '&apfrom=' . urlencode($continue);
@@ -370,6 +437,12 @@ class WikipediaApi
             urlencode($prefix) . '&format=php&aplimit=' . $count . $append
         );
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('listprefix API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
+
         $continue = $x['query-continue']['allpages']['apfrom'];
 
         return $x['query']['allpages'];
@@ -407,7 +480,7 @@ class WikipediaApi
             'format' => 'php',
             'title' => $page,
             'text' => $data,
-            'token' => $this->getedittoken(),
+            'token' => $this->gettoken($page),
             'summary' => $summary,
             ($minor ? 'minor' : 'notminor') => '1',
             ($bot ? 'bot' : 'notbot') => '1',
@@ -423,13 +496,17 @@ class WikipediaApi
         $x = $this->http->post($this->apiurl, $params);
         $logger->addDebug($x);
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('edit API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
+
         if ($x['edit']['result'] == 'Success') {
             return true;
         }
         if ($x['error']['code'] == 'badtoken') {
             if ($this->login($this->user, $this->pass)) {
-                $this->gettokens('Main Page', true);
-
                 return $this->edit($page, $data, $summary, $minor, $bot, $wpStarttime, $wpEdittime, $checkrun);
             } else {
                 return false;
@@ -440,78 +517,29 @@ class WikipediaApi
     }
 
     /**
-     * This function returns the edit token.
-     *
-     * @return Edit token.
-     **/
-    public function getedittoken()
-    {
-        $tokens = $this->gettokens('Main Page');
-        if ($tokens['edittoken'] == '') {
-            $tokens = $this->gettokens('Main Page', true);
-        }
-        $this->edittoken = $tokens['edittoken'];
-
-        return $tokens['edittoken'];
-    }
-
-    /**
-     * This function returns the various tokens for a certain page.
+     * This function returns the CSRF token for a certain page.
      *
      * @param $title Page to get the tokens for.
-     * @param $flush Optional - internal use only.  Flushes the token cache.
      *
-     * @return An associative array of tokens for the page.
+     * @return A CSRF token for the page
      **/
-    public function gettokens($title, $flush = false)
+    public function gettoken($title)
     {
-        if (!is_array($this->tokencache)) {
-            $this->tokencache = array();
-        }
-        foreach ($this->tokencache as $t => $data) {
-            if (time() - $data['timestamp'] > 6 * 60 * 60) {
-                unset($this->tokencache[$t]);
-            }
-        }
-        if (isset($this->tokencache[$title]) && (!$flush)) {
-            return $this->tokencache[$title]['tokens'];
-        } else {
-            $x = $this->http->get(
-                $this->apiurl . '?action=query&rawcontinue=1&format=php&prop=info&intoken=edit' .
-                '|delete|protect|move|block|unblock|email&titles=' . urlencode($title)
-            );
-            $x = unserialize($x);
-            foreach ($x['query']['pages'] as $y) {
-                $tokens = array();
-                if (isset($y['edittoken'])) {
-                    $tokens['edittoken'] = $y['edittoken'];
-                }
-                if (isset($y['deletetoken'])) {
-                    $tokens['deletetoken'] = $y['deletetoken'];
-                }
-                if (isset($y['protecttoken'])) {
-                    $tokens['protecttoken'] = $y['protecttoken'];
-                }
-                if (isset($y['movetoken'])) {
-                    $tokens['movetoken'] = $y['movetoken'];
-                }
-                if (isset($y['blocktoken'])) {
-                    $tokens['blocktoken'] = $y['blocktoken'];
-                }
-                if (isset($y['unblocktoken'])) {
-                    $tokens['unblocktoken'] = $y['unblocktoken'];
-                }
-                if (isset($y['emailtoken'])) {
-                    $tokens['emailtoken'] = $y['emailtoken'];
-                }
-                $this->tokencache[$title] = array(
-                    'timestamp' => time(),
-                    'tokens' => $tokens,
-                );
+        global $logger;
 
-                return $tokens;
-            }
+        $x = $this->http->get(
+            $this->apiurl . '?rawcontinue=1&format=php' .
+            '&action=query&meta=tokens&type=csrf&titles=' .
+            urlencode($title)
+        );
+        $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('gettoken API returned warnings: ' .
+                                var_export($x['warnings'], true));
         }
+
+        return $x['query']['tokens']['csrftoken'];
     }
 
     /**
@@ -531,6 +559,12 @@ class WikipediaApi
         );
         $logger->addDebug($x);
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('login API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
+
         if ($x['login']['result'] == 'Success') {
             return true;
         }
@@ -541,6 +575,12 @@ class WikipediaApi
             );
             $logger->addDebug($x);
             $x = unserialize($x);
+
+            if (isset($x['warnings'])) {
+                $logger->addWarning('login API returned warnings: ' .
+                                    var_export($x['warnings'], true));
+            }
+
             if ($x['login']['result'] == 'Success') {
                 return true;
             }
@@ -559,19 +599,23 @@ class WikipediaApi
     public function move($old, $new, $reason)
     {
         global $logger;
-        $tokens = $this->gettokens($old);
         $params = array(
             'action' => 'move',
             'format' => 'php',
             'from' => $old,
             'to' => $new,
-            'token' => $tokens['movetoken'],
+            'token' => $this->gettoken($old),
             'reason' => $reason,
         );
 
         $x = $this->http->post($this->apiurl, $params);
         $logger->addDebug($x);
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('move API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
     }
 
     /**
@@ -585,17 +629,14 @@ class WikipediaApi
     public function rollback($title, $user, $reason, $token = null)
     {
         global $logger;
-        /*if (($token == null) or ($token == '')) {
-            $token = $this->revisions($title, 1, 'older', false, null, true, true);
-            $logger->addError('Revisions: ' . $token);
-            if ($token[0]['user'] == $user) {
-                $token = $token[0]['rollbacktoken'];
-            } else {
-                reurn false;
-            }
-        }*/
         $x = $this->http->get($this->apiurl . '?action=query&meta=tokens&type=rollback&format=php');
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('rollback API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
+
         $token = $x['query']['tokens']['rollbacktoken'];
 
         $params = array(
@@ -610,6 +651,11 @@ class WikipediaApi
         $logger->addInfo('Posting to API: ' . var_export($params, true));
         $x = $this->http->post($this->apiurl, $params);
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('rollback API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
 
         return (isset($x['rollback']['summary']) and isset($x['rollback']['revid']) and $x['rollback']['revid'])
             ? true
@@ -642,6 +688,8 @@ class WikipediaApi
         $dieonerror = true,
         $redirects = false
     ) {
+        global $logger;
+
         $x = $this->http->get(
             $this->apiurl . '?action=query&rawcontinue=1&prop=revisions&titles=' .
             urlencode($page) . '&rvlimit=' . urlencode($count) . '&rvprop=timestamp|ids|user|comment' .
@@ -650,6 +698,11 @@ class WikipediaApi
             (($getrbtok == true) ? '&rvtoken=rollback' : '') . (($redirects == true) ? '&redirects' : '')
         );
         $x = unserialize($x);
+
+        if (isset($x['warnings'])) {
+            $logger->addWarning('revisions API returned warnings: ' .
+                                var_export($x['warnings'], true));
+        }
 
         if ($revid !== null) {
             $found = false;
