@@ -674,7 +674,6 @@ class WikipediaApi
      * @param $content Whether to return actual revision content, true or false.  (Default false)
      * @param $revid Revision ID to start at.  (Default null)
      * @param $wait Whether or not to wait a few seconds for the specific revision to become available.  (Default true)
-     * @param $getrbtok Whether or not to retrieve a rollback token for the revision.  (Default false)
      * @param $dieonerror Whether or not to kill the process with an error if an error occurs.  (Default false)
      * @param $redirects Whether or not to follow redirects.  (Default false)
      *
@@ -687,7 +686,6 @@ class WikipediaApi
         $content = false,
         $revid = null,
         $wait = true,
-        $getrbtok = false,
         $dieonerror = true,
         $redirects = false
     ) {
@@ -698,7 +696,7 @@ class WikipediaApi
             urlencode($page) . '&rvlimit=' . urlencode($count) . '&rvprop=timestamp|ids|user|comment' .
             (($content) ? '|content' : '') . '&format=php&meta=userinfo&rvdir=' . urlencode($dir) .
             (($revid !== null) ? '&rvstartid=' . urlencode($revid) : '') .
-            (($getrbtok == true) ? '&rvtoken=rollback' : '') . (($redirects == true) ? '&redirects' : '')
+            (($redirects == true) ? '&redirects' : '')
         );
         $x = unserialize($x);
 
@@ -737,7 +735,7 @@ class WikipediaApi
                 if ($wait == true) {
                     sleep(1);
 
-                    return $this->revisions($page, $count, $dir, $content, $revid, false, $getrbtok, $dieonerror);
+                    return $this->revisions($page, $count, $dir, $content, $revid, false, $dieonerror);
                 } else {
                     if ($dieonerror == true) {
                         die('Revision error.' . "\n");
