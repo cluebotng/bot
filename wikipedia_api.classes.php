@@ -483,8 +483,11 @@ class WikipediaApi
             'token' => $this->gettoken($page),
             'summary' => $summary,
             ($minor ? 'minor' : 'notminor') => '1',
-            ($bot ? 'bot' : 'notbot') => '1',
         );
+
+        if ($bot) {
+            $params['bot'] = '1';
+        }
 
         if ($wpStarttime !== null) {
             $params['starttimestamp'] = $wpStarttime;
