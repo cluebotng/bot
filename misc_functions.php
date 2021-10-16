@@ -49,7 +49,7 @@ function doInit()
 {
     global $logger;
     if (Config::$pass == null) {
-        Config::$pass = trim(file_get_contents(getenv('HOME') . '/.cluebotng.password.only'));
+        Config::$pass = trim(file_get_contents(getenv('HOME') . '/.cluebotng.bot.password'));
     }
     Api::init();
     Api::$a->login(Config::$user, Config::$pass);
