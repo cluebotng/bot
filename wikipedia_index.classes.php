@@ -69,8 +69,8 @@ class WikipediaIndex
         if ($rv == null) {
             $rv = $wpapi->revisions($page, 1, 'older', true);
         }
-        if (!$rv[0]['*']) {
-            $rv[0]['*'] = $wpq->getpage($page);
+        if (!$rv[0]['slots']['main']['*']) {
+            $rv[0]['slots']['main']['*'] = $wpq->getpage($page);
         }
 
         //Fake the edit form.
@@ -90,19 +90,19 @@ class WikipediaIndex
         $html .= "<input type='hidden' value=\"{$token}\" name=\"wpEditToken\" />\n";
         $html .= '<input name="wpAutoSummary" type="hidden" value="' . md5('') . '" />' . "\n";
 
-        if (preg_match('/' . preg_quote('{{nobots}}', '/') . '/iS', $rv[0]['*'])) {
+        if (preg_match('/' . preg_quote('{{nobots}}', '/') . '/iS', $rv[0]['slots']['main']['*'])) {
             return false;
         }        /* Honor the bots flags */
-        if (preg_match('/' . preg_quote('{{bots|allow=none}}', '/') . '/iS', $rv[0]['*'])) {
+        if (preg_match('/' . preg_quote('{{bots|allow=none}}', '/') . '/iS', $rv[0]['slots']['main']['*'])) {
             return false;
         }
-        if (preg_match('/' . preg_quote('{{bots|deny=all}}', '/') . '/iS', $rv[0]['*'])) {
+        if (preg_match('/' . preg_quote('{{bots|deny=all}}', '/') . '/iS', $rv[0]['slots']['main']['*'])) {
             return false;
         }
         if (
             preg_match(
                 '/' . preg_quote('{{bots|deny=', '/') . '(.*)' . preg_quote('}}', '/') . '/iS',
-                $rv[0]['*'],
+                $rv[0]['slots']['main']['*'],
                 $m
             )
         ) {

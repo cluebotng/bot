@@ -692,7 +692,7 @@ class WikipediaApi
         global $logger;
 
         $x = $this->http->get(
-            $this->apiurl . '?action=query&rawcontinue=1&prop=revisions&titles=' .
+            $this->apiurl . '?action=query&rawcontinue=1&prop=revisions&rvslots=main&titles=' .
             urlencode($page) . '&rvlimit=' . urlencode($count) . '&rvprop=timestamp|ids|user|comment' .
             (($content) ? '|content' : '') . '&format=php&meta=userinfo&rvdir=' . urlencode($dir) .
             (($revid !== null) ? '&rvstartid=' . urlencode($revid) : '') .
