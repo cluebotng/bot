@@ -294,7 +294,7 @@ class WikipediaIndex
         if (($token == null) or (!$token)) {
             $wpapi = new WikipediaApi();
             $wpapi->apiurl = str_replace('index.php', 'api.php', $this->indexurl);
-            $token = $wpapi->revisions($title, 1, 'older', false, null, true, true);
+            $token = $wpapi->revisions($title, 1, 'older', false, null, true);
             if ($token[0]['user'] == $user) {
                 $token = $token[0]['rollbacktoken'];
             } else {

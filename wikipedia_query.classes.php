@@ -50,7 +50,7 @@ class WikipediaQuery
     public function getpage($page)
     {
         $this->checkurl();
-        $ret = $this->api->revisions($page, 1, 'older', true, null, true, false, false, false);
+        $ret = $this->api->revisions($page, 1, 'older', true, null, true, false, false);
 
         if (is_array($ret) && count($ret) > 0 && array_key_exists('*', $ret[0])) {
             return $ret[0]['*'];
@@ -77,7 +77,7 @@ class WikipediaQuery
     public function getpageid($page)
     {
         $this->checkurl();
-        $ret = $this->api->revisions($page, 1, 'older', false, null, true, false, false, false);
+        $ret = $this->api->revisions($page, 1, 'older', false, null, true, false, false);
 
         return $ret['pageid'];
     }

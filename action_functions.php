@@ -121,7 +121,7 @@ class Action
 
     public static function doRevert($change)
     {
-        $rev = Api::$a->revisions($change['title'], 5, 'older', false, null, true, true);
+        $rev = Api::$a->revisions($change['title'], 5, 'older', false, null, true);
         $revid = 0;
         $rbtok = $rev[0]['rollbacktoken'];
         $revdata = false;
