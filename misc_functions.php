@@ -52,7 +52,9 @@ function doInit()
         Config::$pass = trim(file_get_contents(getenv('HOME') . '/.cluebotng.bot.password'));
     }
     Api::init($logger);
-    Api::$a->login(Config::$user, Config::$pass);
+    if (!Api::$a->login(Config::$user, Config::$pass)) {
+	    die('Failed to authenticate');
+    }
     Globals::$tfas = 0;
     Globals::$stdin = fopen('php://stdin', 'r');
     Globals::$run = Api::$q->getpage('User:' . Config::$user . '/Run');
