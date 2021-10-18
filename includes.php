@@ -41,21 +41,8 @@ require_once 'cbng.php';
 require_once 'feed_functions.php';
 require_once 'irc_functions.php';
 require_once 'mysql_functions.php';
-require_once 'wikipedia_query.classes.php';
-require_once 'wikipedia_api.classes.php';
-require_once 'wikipedia_index.classes.php';
-require_once 'http.classes.php';
 require_once 'globals.php';
 require_once 'api.php';
 require_once 'process_functions.php';
 require_once 'misc_functions.php';
 require_once 'db_functions.php';
-
-if (Config::$sentry_url != null) {
-    \Raven_Autoloader::register();
-    $client = new \Raven_Client(Config::$sentry_url);
-    $error_handler = new \Raven_ErrorHandler($client);
-    $error_handler->registerExceptionHandler();
-    $error_handler->registerErrorHandler();
-    $error_handler->registerShutdownFunction();
-}

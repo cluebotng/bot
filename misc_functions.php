@@ -51,7 +51,7 @@ function doInit()
     if (Config::$pass == null) {
         Config::$pass = trim(file_get_contents(getenv('HOME') . '/.cluebotng.bot.password'));
     }
-    Api::init();
+    Api::init($logger);
     Api::$a->login(Config::$user, Config::$pass);
     Globals::$tfas = 0;
     Globals::$stdin = fopen('php://stdin', 'r');
