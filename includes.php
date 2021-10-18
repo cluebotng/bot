@@ -46,12 +46,3 @@ require_once 'api.php';
 require_once 'process_functions.php';
 require_once 'misc_functions.php';
 require_once 'db_functions.php';
-
-if (Config::$sentry_url != null) {
-    \Raven_Autoloader::register();
-    $client = new \Raven_Client(Config::$sentry_url);
-    $error_handler = new \Raven_ErrorHandler($client);
-    $error_handler->registerExceptionHandler();
-    $error_handler->registerErrorHandler();
-    $error_handler->registerShutdownFunction();
-}
