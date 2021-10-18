@@ -6,8 +6,15 @@
         "squizlabs/php_codesniffer": "@stable",
         "phpmd/phpmd" : "@stable"
     },
+    "repositories": [
+        {
+            "url": "https://github.com/cluebotng/wikipedia.git",
+            "type": "git"
+        }
+    ],
     "require": {
-        "monolog/monolog": "^1.17"
+        "monolog/monolog": "^1.17",
+        "cluebotng/wikipedia": "^v1.0.0"
     },
     "config": {
         "platform": {

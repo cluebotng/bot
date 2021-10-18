@@ -23,14 +23,16 @@ namespace CluebotNG;
 
 class Api
 {
+    public static $h;
     public static $a;
     public static $q;
     public static $i;
 
-    public static function init()
+    public static function init($logger)
     {
-        self::$a = new WikipediaApi();
-        self::$q = new WikipediaQuery();
-        self::$i = new WikipediaIndex();
+        self::$h = new \Wikipedia\Http($logger);
+        self::$a = new \Wikipedia\Api(self::$h, $logger);
+        self::$q = new \Wikipedia\Query(self::$h, $logger);
+        self::$i = new \Wikipedia\Index(self::$h, $logger);
     }
 }
