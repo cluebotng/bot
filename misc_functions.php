@@ -53,8 +53,10 @@ function doInit()
     }
     Api::init($logger);
     if (!Api::$a->login(Config::$user, Config::$pass)) {
-	    die('Failed to authenticate');
+        $logger->addError('Failed to authenticate');
+        die();
     }
+    Globals::$atime = time();
     Globals::$tfas = 0;
     Globals::$stdin = fopen('php://stdin', 'r');
     Globals::$run = Api::$q->getpage('User:' . Config::$user . '/Run');

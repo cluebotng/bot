@@ -34,6 +34,7 @@ class Globals
     public static $optin;
     public static $edit;
     public static $stalk;
+    public static $atime;
     public static $namespaces = array(
         'special' => -1,
         'media' => -2,
