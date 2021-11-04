@@ -37,6 +37,16 @@ class Process
             Globals::$tfas = time();
             Globals::$tfa = $tfam[1];
         }
+        if ((time() - Globals::$atime) >= 600) {
+            if (!Api::$a->loggedin()) {
+                $logger->addWarning('Lost authentication');
+                if (!Api::$a->login(Config::$user, Config::$pass)) {
+                    $logger->addError('Failed to re-authenticate');
+                    die(); // Before we fork, this is the parent
+                }
+            }
+            Globals::$atime = time();
+        }
         if (Config::$fork) {
             $pid = pcntl_fork();
             if ($pid != 0) {
