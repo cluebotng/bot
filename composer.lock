@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "628b5bc59c009df8af8c8e35ada7970b",
+    "content-hash": "f39a572631bbe3fe8f708e22ec37b77e",
     "packages": [
         {
             "name": "cluebotng/wikipedia",
-            "version": "v1.0.7",
+            "version": "v1.0.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cluebotng/wikipedia.git",
-                "reference": "e0585d3cc58117549114b4dbd340babbc7d8f3b5"
+                "reference": "1390635ae594dbc3833991734758ce2bfc434c4c"
             },
             "require": {
                 "php": ">=7.2"
@@ -39,7 +39,7 @@
                 "GNU General Public License"
             ],
             "description": "ClueBot Wikipedia API Helpers",
-            "time": "2021-11-15T17:17:03+00:00"
+            "time": "2021-11-15T17:22:30+00:00"
         },
         {
             "name": "monolog/monolog",
