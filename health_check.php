@@ -25,6 +25,7 @@ namespace CluebotNG;
  date_default_timezone_set('Europe/London');
  include 'vendor/autoload.php';
  $logger = new \Monolog\Logger('cluebotng');
+ $logger->pushHandler(new \Monolog\Handler\StreamHandler('php://stderr', \Monolog\Logger::INFO));
 
  require_once 'cluebot-ng.config.php';
  require_once 'api.php';
@@ -50,7 +51,7 @@ if (count($usercontribs) != 1) {
 
  /* If we edited in the last 15min, then all good */
 if (strtotime($last_contrib_timestamp) > (time() - 900)) {
-    $logger->addError('Last contribution was within last 15min (' . $last_contrib_timestamp . ')');
+    $logger->addInfo('Last contribution was within last 15min (' . $last_contrib_timestamp . ')');
     exit(0);
 }
 
@@ -59,7 +60,7 @@ if (strtotime($last_contrib_timestamp) > (time() - 900)) {
 
  /* If we have been running for less than 30min, then all good (back off) */
 if ($current_uptime > (time() - 1800)) {
-    $logger->addError('Uptime less than 30min (' . $current_uptime . ')');
+    $logger->addInfo('Uptime less than 30min (' . $current_uptime . ')');
     exit(0);
 }
 
