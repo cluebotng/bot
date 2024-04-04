@@ -27,7 +27,6 @@ class Globals
     public static $tfas;
     public static $tfa;
     public static $aoptin;
-    public static $mw_mysql;
     public static $cb_mysql;
     public static $run;
     public static $wl = array();

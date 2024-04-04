@@ -42,27 +42,36 @@ function checkMySQL()
     }
 }
 
-function checkRepMySQL()
+function connect_to_mysql()
 {
-    if (!Globals::$mw_mysql || !is_mysql_alive(Globals::$mw_mysql)) {
-        Globals::$mw_mysql = mysqli_connect(
-            'p:' . Config::$mw_mysql_host,
-            Config::$mw_mysql_user,
-            Config::$mw_mysql_pass,
-            Config::$mw_mysql_db,
-            Config::$mw_mysql_port
-        );
-        if (!Globals::$mw_mysql) {
-            die('replica mysql error: ' . mysqli_connect_error());
-        }
-        mysqli_select_db(Globals::$mw_mysql, Config::$mw_mysql_db);
+    if(count(Config::$mw_mysql_credentials) > 0) {
+        $entry = rand(0, count(Config::$mw_mysql_credentials)-1);
+        $mw_mysql_user = Config::$mw_mysql_credentials[$entry]['user'];
+        $mw_mysql_pass = Config::$mw_mysql_credentials[$entry]['pass'];
+    } else {
+        $mw_mysql_user = Config::$mw_mysql_user;
+        $mw_mysql_pass = Config::$mw_mysql_pass;
     }
+
+    $mw_mysql = @mysqli_connect(
+        'p:' . Config::$mw_mysql_host,
+        $mw_mysql_user,
+        $mw_mysql_pass,
+        Config::$mw_mysql_db,
+        Config::$mw_mysql_port
+    );
+    if (!$mw_mysql) {
+        die('replica mysql error: ' . mysqli_connect_error());
+    }
+
+    mysqli_select_db($mw_mysql, Config::$mw_mysql_db);
+    return $mw_mysql;
 }
 
 function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
 {
     global $logger;
-    checkRepMySQL();
+    $mw_mysql = connect_to_mysql();
     $userPage = str_replace(' ', '_', $user);
     $title = str_replace(' ', '_', $title);
     $data = array(
@@ -78,58 +87,58 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         'user_distinct_pages' => false,
     );
     $res = mysqli_query(
-        Globals::$mw_mysql,
+        $mw_mysql,
         'SELECT `rev_timestamp`, `actor_name` FROM `page`' .
         ' JOIN `revision` ON `rev_page` = `page_id`' .
         ' JOIN `actor` ON `actor_id` = `rev_actor`' .
         ' WHERE `page_namespace` = "' .
-        mysqli_real_escape_string(Globals::$mw_mysql, $nsid) .
+        mysqli_real_escape_string($mw_mysql, $nsid) .
         '" AND `page_title` = "' .
-        mysqli_real_escape_string(Globals::$mw_mysql, $title) .
+        mysqli_real_escape_string($mw_mysql, $title) .
         '" ORDER BY `rev_id` LIMIT 1'
     );
     if ($res === false) {
         $logger->addWarning("page metadata query returned no data for " . $title .
-                            " (" . $nsid . "): " . mysqli_error(Globals::$mw_mysql));
+                            " (" . $nsid . "): " . mysqli_error($mw_mysql));
     } else {
         $d = mysqli_fetch_assoc($res);
         $data['common']['page_made_time'] = $d['rev_timestamp'];
         $data['common']['creator'] = $d['actor_name'];
     }
     $res = mysqli_query(
-        Globals::$mw_mysql,
+        $mw_mysql,
         'SELECT COUNT(*) as count FROM `page`' .
         ' JOIN `revision` ON `rev_page` = `page_id`' .
         ' WHERE `page_namespace` = "' .
-        mysqli_real_escape_string(Globals::$mw_mysql, $nsid) .
+        mysqli_real_escape_string($mw_mysql, $nsid) .
         '" AND `page_title` = "' .
-        mysqli_real_escape_string(Globals::$mw_mysql, $title) .
+        mysqli_real_escape_string($mw_mysql, $title) .
         '" AND `rev_timestamp` > "' .
-        mysqli_real_escape_string(Globals::$mw_mysql, $timestamp) . '"'
+        mysqli_real_escape_string($mw_mysql, $timestamp) . '"'
     );
     if ($res === false) {
         $logger->addWarning("page recent edits query returned no data for " . $title .
-                            " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error(Globals::$mw_mysql));
+                            " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
     } else {
         $d = mysqli_fetch_assoc($res);
         $data['common']['num_recent_edits'] = $d['count'];
     }
     $res = mysqli_query(
-        Globals::$mw_mysql,
+        $mw_mysql,
         'SELECT COUNT(*) as count FROM `page`' .
         ' JOIN `revision` ON `rev_page` = `page_id`' .
         ' JOIN `comment` ON `rev_comment_id` = `comment_id`' .
         " WHERE `page_namespace` = '" .
-        mysqli_real_escape_string(Globals::$mw_mysql, $nsid) .
+        mysqli_real_escape_string($mw_mysql, $nsid) .
         "' AND `page_title` = '" .
-        mysqli_real_escape_string(Globals::$mw_mysql, $title) .
+        mysqli_real_escape_string($mw_mysql, $title) .
         "' AND `rev_timestamp` > '" .
-        mysqli_real_escape_string(Globals::$mw_mysql, $timestamp) .
+        mysqli_real_escape_string($mw_mysql, $timestamp) .
         "' AND `comment_text` LIKE 'Revert%'"
     );
     if ($res === false) {
         $logger->addWarning("page recent reverts query returned no data for " . $title .
-                            " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error(Globals::$mw_mysql));
+                            " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
     } else {
         $d = mysqli_fetch_assoc($res);
         $data['common']['num_recent_reversions'] = $d['count'];
@@ -140,83 +149,83 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     ) {
         $data['user_reg_time'] = time();
         $res = mysqli_query(
-            Globals::$mw_mysql,
+            $mw_mysql,
             'SELECT COUNT(*) AS `user_editcount` FROM `revision_userindex` ' .
             ' JOIN `actor` ON `actor_id` = `rev_actor`' .
             ' WHERE `actor_name` = "' .
-            mysqli_real_escape_string(Globals::$mw_mysql, $user) . '"'
+            mysqli_real_escape_string($mw_mysql, $user) . '"'
         );
         if ($res === false) {
             $logger->addWarning("user edit count query returned no data for (invalid ip) " .
-                                $user . ": " . mysqli_error(Globals::$mw_mysql));
+                                $user . ": " . mysqli_error($mw_mysql));
         } else {
             $d = mysqli_fetch_assoc($res);
             $data['user_edit_count'] = $d['user_editcount'];
         }
     } else {
         $res = mysqli_query(
-            Globals::$mw_mysql,
+            $mw_mysql,
             'SELECT `user_registration` FROM `user` WHERE `user_name` = "' .
-            mysqli_real_escape_string(Globals::$mw_mysql, $user) . '"'
+            mysqli_real_escape_string($mw_mysql, $user) . '"'
         );
         $d = mysqli_fetch_assoc($res);
         if ($res === false) {
             $logger->addWarning("user registration query returned no data for " .
-                                $user . ": " . mysqli_error(Globals::$mw_mysql));
+                                $user . ": " . mysqli_error($mw_mysql));
         } else {
             $data['user_reg_time'] = $d['user_registration'];
         }
         if (!$data['user_reg_time']) {
             $res = mysqli_query(
-                Globals::$mw_mysql,
+                $mw_mysql,
                 'SELECT `rev_timestamp` FROM `revision_userindex` ' .
                 ' JOIN `actor` ON `actor_id` = `rev_actor`' .
                 ' WHERE `actor_name` = "' .
-                mysqli_real_escape_string(Globals::$mw_mysql, $user) . '" ORDER BY `rev_timestamp` LIMIT 0,1'
+                mysqli_real_escape_string($mw_mysql, $user) . '" ORDER BY `rev_timestamp` LIMIT 0,1'
             );
             if ($res === false) {
                 $logger->addWarning("user registration via revision query returned no data for " .
-                                    $user . ": " . mysqli_error(Globals::$mw_mysql));
+                                    $user . ": " . mysqli_error($mw_mysql));
             } else {
                 $d = mysqli_fetch_assoc($res);
                 $data['user_reg_time'] = $d['rev_timestamp'];
             }
         }
         $res = mysqli_query(
-            Globals::$mw_mysql,
+            $mw_mysql,
             'SELECT `user_editcount` FROM `user` WHERE `user_name` =  "' .
-            mysqli_real_escape_string(Globals::$mw_mysql, $user) . '"'
+            mysqli_real_escape_string($mw_mysql, $user) . '"'
         );
         if ($res === false) {
             $logger->addWarning("user edit count query returned no data for " .
-                                $user . ": " . mysqli_error(Globals::$mw_mysql));
+                                $user . ": " . mysqli_error($mw_mysql));
         } else {
             $d = mysqli_fetch_assoc($res);
             $data['user_edit_count'] = $d['user_editcount'];
         }
     }
     $res = mysqli_query(
-        Globals::$mw_mysql,
+        $mw_mysql,
         'SELECT COUNT(*) as count FROM `page`' .
         ' JOIN `revision` ON `rev_page` = `page_id`' .
         ' JOIN `comment` ON `rev_comment_id` = `comment_id`' .
         " WHERE `page_namespace` = 3 AND `page_title` = '" .
-        mysqli_real_escape_string(Globals::$mw_mysql, $userPage) .
+        mysqli_real_escape_string($mw_mysql, $userPage) .
         "' AND (`comment_text` LIKE '%warning%' OR `comment_text`" .
         " LIKE 'General note: Nonconstructive%')"
     );
     if ($res === false) {
         $logger->addWarning("user warnings query returned no data for " .
-                            $userPage . ": " . mysqli_error(Globals::$mw_mysql));
+                            $userPage . ": " . mysqli_error($mw_mysql));
     } else {
         $d = mysqli_fetch_assoc($res);
         $data['user_warns'] = $d['count'];
     }
     $res = mysqli_query(
-        Globals::$mw_mysql,
+        $mw_mysql,
         "SELECT count(distinct rev_page) AS count FROM' .
         ' `revision_userindex` JOIN `actor` ON `actor_id` = `rev_actor`' .
-        ' WHERE `actor_name` = '" . mysqli_real_escape_string(Globals::$mw_mysql, $userPage) . "'"
+        ' WHERE `actor_name` = '" . mysqli_real_escape_string($mw_mysql, $userPage) . "'"
     );
     if ($res !== false) {
         $d = mysqli_fetch_assoc($res);
@@ -243,5 +252,6 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         );
     }
 
+    mysqli_close($mw_mysql);
     return $data;
 }
