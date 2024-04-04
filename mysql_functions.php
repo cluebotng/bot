@@ -100,7 +100,6 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         Globals::$mw_mysql,
         'SELECT COUNT(*) as count FROM `page`' .
         ' JOIN `revision` ON `rev_page` = `page_id`' .
-        ' JOIN `actor` ON `actor_id` = `rev_actor`' .
         ' WHERE `page_namespace` = "' .
         mysqli_real_escape_string(Globals::$mw_mysql, $nsid) .
         '" AND `page_title` = "' .
