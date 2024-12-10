@@ -63,28 +63,4 @@ function doInit()
     Globals::$optin = Api::$q->getpage('User:' . Config::$user . '/Optin');
     Globals::$aoptin = Api::$q->getpage('User:' . Config::$user . '/AngryOptin');
     loadHuggleWhitelist();
-    Globals::$stalk = array();
-    Globals::$edit = array();
-    $tmp = explode("\n", Api::$q->getpage('User:' . Config::$owner . '/CBAutostalk.js'));
-    foreach ($tmp as $tmp2) {
-        if (strlen($tmp2) > 0 && substr($tmp2, 0, 1) != '#') {
-            $tmp3 = explode('|', $tmp2, 2);
-            if (count($tmp3) == 2) {
-                Globals::$stalk[$tmp3[0]] = trim($tmp3[1]);
-            } else {
-                $logger->addInfo("Skipping auto stalk entry: $tmp2");
-            }
-        }
-    }
-    $tmp = explode("\n", Api::$q->getpage('User:' . Config::$owner . '/CBAutoedit.js'));
-    foreach ($tmp as $tmp2) {
-        if (strlen($tmp2) > 0 && substr($tmp2, 0, 1) != '#') {
-            $tmp3 = explode('|', $tmp2, 2);
-            if (count($tmp3) == 2) {
-                Globals::$edit[$tmp3[0]] = trim($tmp3[1]);
-            } else {
-                $logger->addInfo("Skipping auto edit entry: $tmp2");
-            }
-        }
-    }
 }

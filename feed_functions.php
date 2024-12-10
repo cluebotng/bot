@@ -84,27 +84,6 @@ class Feed
                             self::bail($data, 'New article');
                             return;
                         }
-                        $stalkchannel = array();
-                        foreach (Globals::$stalk as $key => $value) {
-                            if (myfnmatch(str_replace('_', ' ', $key), str_replace('_', ' ', $data['user']))) {
-                                $stalkchannel = array_merge($stalkchannel, explode(',', $value));
-                            }
-                        }
-                        foreach (Globals::$edit as $key => $value) {
-                            if (
-                                myfnmatch(
-                                    str_replace('_', ' ', $key),
-                                    str_replace(
-                                        '_',
-                                        ' ',
-                                        ($data['namespace'] == 'Main:' ? '' : $data['namespace']) .
-                                        $data['title']
-                                    )
-                                )
-                            ) {
-                                $stalkchannel = array_merge($stalkchannel, explode(',', $value));
-                            }
-                        }
                         switch ($data['namespace'] . $data['title']) {
                             case 'User:' . Config::$user . '/Run':
                                 Globals::$run = Api::$q->getpage('User:' . Config::$user . '/Run');
