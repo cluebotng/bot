@@ -103,18 +103,6 @@ class Process
             . '[[User:' . $change['user'] . '|(u)]] '
             . '[[User talk:' . $change['user'] . '|(t)]] '
             . $reason . ' on ' . gmdate('c');
-        $oftVand = unserialize(file_get_contents('oftenvandalized.txt'));
-        if (rand(1, 50) == 2) {
-            foreach ($oftVand as $art => $artVands) {
-                foreach ($artVands as $key => $time) {
-                    if ((time() - $time) > 2 * 24 * 60 * 60) {
-                        unset($oftVand[$art][$key]);
-                    }
-                }
-            }
-        }
-        $oftVand[$change['title']][] = time();
-        file_put_contents('oftenvandalized.txt', serialize($oftVand));
         $ircreport = "\x0315[[\x0307" . $change['title'] . "\x0315]] by \"\x0303" . $change['user'] .
             "\x0315\" (\x0312 " . $change['url'] . " \x0315) \x0306" . $s . "\x0315 (";
         $change['mysqlid'] = Db::detectedVandalism(
