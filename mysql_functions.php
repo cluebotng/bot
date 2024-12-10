@@ -44,8 +44,8 @@ function checkMySQL()
 
 function connect_to_mysql()
 {
-    if(count(Config::$mw_mysql_credentials) > 0) {
-        $entry = rand(0, count(Config::$mw_mysql_credentials)-1);
+    if (count(Config::$mw_mysql_credentials) > 0) {
+        $entry = rand(0, count(Config::$mw_mysql_credentials) - 1);
         $mw_mysql_user = Config::$mw_mysql_credentials[$entry]['user'];
         $mw_mysql_pass = Config::$mw_mysql_credentials[$entry]['pass'];
     } else {
