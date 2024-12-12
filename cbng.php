@@ -261,7 +261,7 @@ function toXML($data)
 
 function isVandalism($data, &$score)
 {
-    $fp = fsockopen(Db::getCurrentCoreNode(), Config::$coreport, $errno, $errstr, 15);
+    $fp = fsockopen(Config::$core_host, Config::$core_port, $errno, $errstr, 15);
     if (!$fp) {
         return false;
     }
