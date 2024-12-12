@@ -118,13 +118,8 @@ class IRC
     private static function message($channel, $message)
     {
         global $logger;
-        $relay_node = Db::getCurrentIrcRelayNode();
-        if (!isset($relay_node)) {
-            $logger->addError("Could not get relay node. Failed to send: " . $message);
-            return;
-        }
         $logger->addInfo('Saying to ' . $channel . ': ' . $message);
-        $udp = fsockopen('udp://' . $relay_node, Config::$udpport);
+        $udp = fsockopen('udp://' . Config::$relay_host, Config::$relay_port);
         if ($udp !== false) {
             fwrite($udp, $channel . ':' . $message);
             fclose($udp);
