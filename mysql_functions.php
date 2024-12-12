@@ -232,9 +232,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     $res = mysqli_query(
         $mw_mysql,
         'SET STATEMENT max_statement_time=10 FOR ' .
-        "SELECT count(distinct rev_page) AS count FROM' .
+        'SELECT count(distinct rev_page) AS count FROM' .
         ' `revision_userindex` JOIN `actor` ON `actor_id` = `rev_actor`' .
-        ' WHERE `actor_name` = '" . mysqli_real_escape_string($mw_mysql, $userPage) . "'"
+        " WHERE `actor_name` = '" . mysqli_real_escape_string($mw_mysql, $userPage) . "'"
     );
     if ($res !== false) {
         $d = mysqli_fetch_assoc($res);
