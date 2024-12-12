@@ -36,9 +36,10 @@ namespace CluebotNG;
         public static $cb_mysql_user = '';
         public static $cb_mysql_pass = '';
         public static $cb_mysql_db = 'cb';
-        public static $udpport = 3334;
-        public static $coreport = 3565;
+        public static $core_host = 'localhost';
+        public static $core_port = 3565;
+        public static $relay_host = 'localhost';
+        public static $relay_port = 3334;
         public static $fork = true;
         public static $dry = false;
-        public static $sentry_url = null;
     }

@@ -75,42 +75,4 @@ class Db
             mysqli_real_escape_string(Globals::$cb_mysql, $user) . '\')'
         );
     }
-
-    // Returns the hostname of the current core node
-    public static function getCurrentCoreNode()
-    {
-        if (self::$coreNodeCache > time() - 10 && self::$coreNode != null) {
-            return self::$coreNode;
-        }
-
-        checkMySQL();
-        self::$coreNodeCache = time();
-        $res = mysqli_query(Globals::$cb_mysql, 'SELECT `node` from `cluster_node` where type="core"');
-        if ($res !== false) {
-            $d = mysqli_fetch_assoc($res);
-            self::$coreNode = $d['node'];
-            return $d['node'];
-        }
-        self::$coreNode = null;
-        return null;
-    }
-
-    // Returns the hostname of the current IRC relay node
-    public static function getCurrentIrcRelayNode()
-    {
-        if (self::$ircRelayNodeCache > time() - 10 && self::$ircRelayNode != null) {
-            return self::$ircRelayNode;
-        }
-
-        checkMySQL();
-        self::$ircRelayNodeCache = time();
-        $res = mysqli_query(Globals::$cb_mysql, 'SELECT `node` from `cluster_node` where type="irc_relay"');
-        if ($res !== false) {
-            $d = mysqli_fetch_assoc($res);
-            self::$ircRelayNode = $d['node'];
-            return $d['node'];
-        }
-        self::$ircRelayNode = null;
-        return null;
-    }
 }

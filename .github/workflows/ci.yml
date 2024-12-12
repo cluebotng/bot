@@ -7,24 +7,13 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-20.04
+    container:
+      image: docker-registry.tools.wmflabs.org/toolforge-php82-sssd-base
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
 
-      - name: Install the system dependancies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gnupg git unzip
-
-          echo 'deb http://ppa.launchpad.net/ondrej/php/ubuntu focal main' | sudo tee -a /etc/apt/sources.list.d/php72.list
-          echo 'deb-src http://ppa.launchpad.net/ondrej/php/ubuntu focal main' | sudo tee -a /etc/apt/sources.list.d/php72.list
-          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4F4EA0AAE5267A6C
-          sudo apt-get update
-
-          # Note: PHP 7.2 matches the current runtime environment
-          sudo apt-get install -y php7.2-cli php7.2-xml php7.2-curl php7.2-zip
-
-      - name: Install the testing dependancies
+      - name: Install the testing dependencies
         run: |
           ./composer.phar self-update
           ./composer.phar install

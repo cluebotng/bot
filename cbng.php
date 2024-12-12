@@ -189,7 +189,12 @@ function parseFeedData($feedData, $useOld = false)
     );
     list($api) = getUrlsInParallel($urls);
     $api = current($api['query']['pages']);
-    $cb = getCbData($feedData['user'], $feedData['namespaceid'], $feedData['title'], $feedData['timestamp']);
+    $cb = getCbData(
+        $feedData['user'],
+        $feedData['namespaceid'],
+        $feedData['title'],
+        $feedData['timestamp'] - (14 * 86400)
+    );
     if (
         !(isset($cb['user_edit_count'])
         and isset($cb['user_distinct_pages'])
@@ -261,7 +266,7 @@ function toXML($data)
 
 function isVandalism($data, &$score)
 {
-    $fp = fsockopen(Db::getCurrentCoreNode(), Config::$coreport, $errno, $errstr, 15);
+    $fp = fsockopen(Config::$core_host, Config::$core_port, $errno, $errstr, 15);
     if (!$fp) {
         return false;
     }
