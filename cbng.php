@@ -189,7 +189,12 @@ function parseFeedData($feedData, $useOld = false)
     );
     list($api) = getUrlsInParallel($urls);
     $api = current($api['query']['pages']);
-    $cb = getCbData($feedData['user'], $feedData['namespaceid'], $feedData['title'], $feedData['timestamp'] - (14 * 86400));
+    $cb = getCbData(
+        $feedData['user'],
+        $feedData['namespaceid'],
+        $feedData['title'],
+        $feedData['timestamp'] - (14 * 86400)
+    );
     if (
         !(isset($cb['user_edit_count'])
         and isset($cb['user_distinct_pages'])
