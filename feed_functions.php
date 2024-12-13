@@ -80,7 +80,7 @@ class Feed
                         }
                         $data['line'] = $message;
                         $data['rawline'] = $rawmessage;
-                        if (stripos('N', $data['flags']) !== false) {
+                        if (stripos($data['flags'], 'N') !== false) {
                             self::bail($data, 'New article');
                             return;
                         }

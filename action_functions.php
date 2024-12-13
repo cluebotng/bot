@@ -210,7 +210,7 @@ class Action
     public static function findAndParseBots($change)
     {
         $text = $change['all']['current']['text'];
-        if (stripos('{{nobots}}', $text) !== false) {
+        if (stripos($text, '{{nobots}}') !== false) {
             return false;
         }
         $botname = preg_quote(Config::$user, '/');
