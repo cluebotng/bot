@@ -25,7 +25,7 @@ namespace CluebotNG;
         public static $status = 'auto';
         public static $angry = false;
         public static $owner = 'Cobi';
-        public static $friends = 'ClueBot,DASHBotAV';
+        public static $friends = ['ClueBot', 'DASHBotAV'];
         public static $mw_mysql_host = 'enwiki.labsdb';
         public static $mw_mysql_port = 3306;
         public static $mw_mysql_user = '';

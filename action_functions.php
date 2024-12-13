@@ -134,7 +134,7 @@ class Action
         if ($revdata === false) {
             return;
         }
-        if (($revdata['user'] == Config::$user) or (in_array($revdata['user'], explode(',', Config::$friends)))) {
+        if (($revdata['user'] == Config::$user) or (in_array($revdata['user'], Config::$friends))) {
             return false;
         }
         if (Config::$dry) {
