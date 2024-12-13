@@ -134,7 +134,7 @@ class Action
         if ($revdata === false) {
             return;
         }
-        if (($revdata['user'] == Config::$user) or (in_array($revdata['user'], explode(',', Config::$friends)))) {
+        if (($revdata['user'] == Config::$user) or (in_array($revdata['user'], Config::$friends))) {
             return false;
         }
         if (Config::$dry) {
@@ -171,18 +171,6 @@ class Action
         }
         if (Config::$angry) {
             return array(true, 'Angry-reverting in angry mode');
-        }
-        if ((time() - Globals::$tfas) >= 1800) {
-            if (
-                preg_match(
-                    '/\(\'\'\'\[\[([^|]*)\|more...\]\]\'\'\'\)/iU',
-                    Api::$q->getpage('Wikipedia:Today\'s featured article/' . date('F j, Y')),
-                    $tfam
-                )
-            ) {
-                Globals::$tfas = time();
-                Globals::$tfa = $tfam[1];
-            }
         }
         if (!self::findAndParseBots($change)) {
             return array(false, 'Exclusion compliance');
@@ -222,7 +210,7 @@ class Action
     public static function findAndParseBots($change)
     {
         $text = $change['all']['current']['text'];
-        if (stripos('{{nobots}}', $text) !== false) {
+        if (stripos($text, '{{nobots}}') !== false) {
             return false;
         }
         $botname = preg_quote(Config::$user, '/');

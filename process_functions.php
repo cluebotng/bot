@@ -29,7 +29,7 @@ class Process
         if (
             (time() - Globals::$tfas) >= 1800 and
             preg_match(
-                '/\(\'\'\'\[\[([^|]*)\|more...\]\]\'\'\'\)/iU',
+                '/{{TFAFULL\|([^}]+)}}/iU',
                 Api::$q->getpage('Wikipedia:Today\'s featured article/' . date('F j, Y')),
                 $tfam
             )
@@ -56,7 +56,7 @@ class Process
         }
         $change = parseFeedData($change);
         $change['justtitle'] = $change['title'];
-        if (in_array('namespace', $change) && $change['namespace'] != 'Main:') {
+        if (array_key_exists('namespace', $change) && $change['namespace'] != 'Main:') {
             $change['title'] = $change['namespace'] . $change['title'];
         }
         self::processEditThread($change);
@@ -75,7 +75,7 @@ class Process
         } else {
             $change['edit_score'] = $s;
         }
-        if (!in_array('all', $change)) {
+        if (!array_key_exists('all', $change)) {
             Feed::bail($change, 'Missing edit data', $s);
             return;
         }
