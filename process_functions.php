@@ -69,12 +69,8 @@ class Process
     {
         global $logger;
         $change['edit_status'] = 'not_reverted';
-        if (!isset($s)) {
-            $change['edit_score'] = 'N/A';
-            $s = null;
-        } else {
-            $change['edit_score'] = $s;
-        }
+        $change['edit_score'] = 'N/A';
+        $s = null;
         if (!array_key_exists('all', $change)) {
             Feed::bail($change, 'Missing edit data', $s);
             return;
