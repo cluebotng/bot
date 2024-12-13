@@ -104,7 +104,7 @@ class Feed
                                 Globals::$optin
                             )
                         ) {
-                            self::bail($data, 'Outside of valid namespaces');
+                            $logger->addInfo('Skipping due to namespace: ' . $message);
                             return;
                         }
                         $logger->addInfo('Processing: ' . $message);

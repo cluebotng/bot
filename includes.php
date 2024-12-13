@@ -35,9 +35,6 @@ $logger->pushHandler(
     )
 );
 
-// Stick with warnings in php 8 (at least for now)
-mysqli_report(MYSQLI_REPORT_OFF);
-
 require_once 'cluebot-ng.config.php';
 require_once 'action_functions.php';
 require_once 'cbng.php';
