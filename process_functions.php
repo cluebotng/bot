@@ -75,7 +75,7 @@ class Process
         } else {
             $change['edit_score'] = $s;
         }
-        if (!in_array('all', $change)) {
+        if (!array_key_exists('all', $change)) {
             Feed::bail($change, 'Missing edit data', $s);
             return;
         }
