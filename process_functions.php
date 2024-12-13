@@ -29,7 +29,7 @@ class Process
         if (
             (time() - Globals::$tfas) >= 1800 and
             preg_match(
-                '/\(\'\'\'\[\[([^|]*)\|more...\]\]\'\'\'\)/iU',
+                '/{{TFAFULL\|([^}]+)}}/iU',
                 Api::$q->getpage('Wikipedia:Today\'s featured article/' . date('F j, Y')),
                 $tfam
             )

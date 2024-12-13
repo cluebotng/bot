@@ -172,18 +172,6 @@ class Action
         if (Config::$angry) {
             return array(true, 'Angry-reverting in angry mode');
         }
-        if ((time() - Globals::$tfas) >= 1800) {
-            if (
-                preg_match(
-                    '/\(\'\'\'\[\[([^|]*)\|more...\]\]\'\'\'\)/iU',
-                    Api::$q->getpage('Wikipedia:Today\'s featured article/' . date('F j, Y')),
-                    $tfam
-                )
-            ) {
-                Globals::$tfas = time();
-                Globals::$tfa = $tfam[1];
-            }
-        }
         if (!self::findAndParseBots($change)) {
             return array(false, 'Exclusion compliance');
         }
