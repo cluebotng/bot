@@ -2,6 +2,8 @@
 
 namespace CluebotNG;
 
+use mysqli_sql_exception;
+
 /*
  * Copyright (C) 2015 Jacobi Carter and Chris Breneman
  *
@@ -22,7 +24,11 @@ namespace CluebotNG;
  */
 function is_mysql_alive($con)
 {
-    return @mysqli_query($con, 'SELECT LAST_INSERT_ID()');
+    try {
+        return @mysqli_query($con, 'SELECT LAST_INSERT_ID()');
+    } catch (mysqli_sql_exception $e) {
+        return false;
+    }
 }
 
 function checkMySQL()
@@ -86,159 +92,258 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         'user_edit_count' => false,
         'user_distinct_pages' => false,
     );
-    $res = mysqli_query(
-        $mw_mysql,
-        'SET STATEMENT max_statement_time=10 FOR ' .
-        'SELECT `rev_timestamp`, `actor_name` FROM `page`' .
-        ' JOIN `revision` ON `rev_page` = `page_id`' .
-        ' JOIN `actor` ON `actor_id` = `rev_actor`' .
-        ' WHERE `page_namespace` = "' .
-        mysqli_real_escape_string($mw_mysql, $nsid) .
-        '" AND `page_title` = "' .
-        mysqli_real_escape_string($mw_mysql, $title) .
-        '" ORDER BY `rev_id` LIMIT 1'
-    );
-    if ($res === false) {
-        $logger->addWarning("page metadata query returned no data for " . $title .
-                            " (" . $nsid . "): " . mysqli_error($mw_mysql));
-    } else {
-        $d = mysqli_fetch_assoc($res);
-        $data['common']['page_made_time'] = $d['rev_timestamp'];
-        $data['common']['creator'] = $d['actor_name'];
+    try {
+        $res = mysqli_query(
+            $mw_mysql,
+            'SET STATEMENT max_statement_time=10 FOR ' .
+            'SELECT `rev_timestamp`, `actor_name` FROM `page`' .
+            ' JOIN `revision` ON `rev_page` = `page_id`' .
+            ' JOIN `actor` ON `actor_id` = `rev_actor`' .
+            ' WHERE `page_namespace` = "' .
+            mysqli_real_escape_string($mw_mysql, $nsid) .
+            '" AND `page_title` = "' .
+            mysqli_real_escape_string($mw_mysql, $title) .
+            '" ORDER BY `rev_id` LIMIT 1'
+        );
+        if ($res === false) {
+            $logger->addWarning("page metadata query returned no data for " . $title .
+                                " (" . $nsid . "): " . mysqli_error($mw_mysql));
+        } else {
+            $d = mysqli_fetch_assoc($res);
+            $data['common']['page_made_time'] = $d['rev_timestamp'];
+            $data['common']['creator'] = $d['actor_name'];
+        }
+    } catch (mysqli_sql_exception $e) {
+        if ($e->getCode() == 1969) {
+            $logger->addWarning("page metadata query timed out for " . $title . " (" . $nsid . ")");
+        } else {
+            $logger->addError("page metadata query returned an error for " . $title .
+                              " (" . $nsid . "): " . $e->getMessage());
+        }
     }
-    $res = mysqli_query(
-        $mw_mysql,
-        'SET STATEMENT max_statement_time=10 FOR ' .
-        'SELECT COUNT(*) as count FROM `page`' .
-        ' JOIN `revision` ON `rev_page` = `page_id`' .
-        ' WHERE `page_namespace` = "' .
-        mysqli_real_escape_string($mw_mysql, $nsid) .
-        '" AND `page_title` = "' .
-        mysqli_real_escape_string($mw_mysql, $title) .
-        '" AND `rev_timestamp` > "' .
-        mysqli_real_escape_string($mw_mysql, $timestamp) . '"'
-    );
-    if ($res === false) {
-        $logger->addWarning("page recent edits query returned no data for " . $title .
-                            " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
-    } else {
-        $d = mysqli_fetch_assoc($res);
-        $data['common']['num_recent_edits'] = $d['count'];
+
+    try {
+        $res = mysqli_query(
+            $mw_mysql,
+            'SET STATEMENT max_statement_time=10 FOR ' .
+            'SELECT COUNT(*) as count FROM `page`' .
+            ' JOIN `revision` ON `rev_page` = `page_id`' .
+            ' WHERE `page_namespace` = "' .
+            mysqli_real_escape_string($mw_mysql, $nsid) .
+            '" AND `page_title` = "' .
+            mysqli_real_escape_string($mw_mysql, $title) .
+            '" AND `rev_timestamp` > "' .
+            mysqli_real_escape_string($mw_mysql, $timestamp) . '"'
+        );
+
+        if ($res === false) {
+            $logger->addWarning("page recent edits query returned no data for " . $title .
+                                " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
+        } else {
+            $d = mysqli_fetch_assoc($res);
+            $data['common']['num_recent_edits'] = $d['count'];
+        }
+    } catch (mysqli_sql_exception $e) {
+        if ($e->getCode() == 1969) {
+            $logger->addWarning("page recent edits query timed out for " . $title . " (" . $nsid . ") > " .
+                                $timestamp);
+        } else {
+            $logger->addError("page recent edits query returned an error for " . $title .
+                              " (" . $nsid . ") > " . $timestamp . ": " . $e->getMessage());
+        }
     }
-    $res = mysqli_query(
-        $mw_mysql,
-        'SET STATEMENT max_statement_time=10 FOR ' .
-        'SELECT COUNT(*) as count FROM `page`' .
-        ' JOIN `revision` ON `rev_page` = `page_id`' .
-        ' JOIN `comment` ON `rev_comment_id` = `comment_id`' .
-        " WHERE `page_namespace` = '" .
-        mysqli_real_escape_string($mw_mysql, $nsid) .
-        "' AND `page_title` = '" .
-        mysqli_real_escape_string($mw_mysql, $title) .
-        "' AND `rev_timestamp` > '" .
-        mysqli_real_escape_string($mw_mysql, $timestamp) .
-        "' AND `comment_text` LIKE 'Revert%'"
-    );
-    if ($res === false) {
-        $logger->addWarning("page recent reverts query returned no data for " . $title .
-                            " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
-    } else {
-        $d = mysqli_fetch_assoc($res);
-        $data['common']['num_recent_reversions'] = $d['count'];
+
+    try {
+        $res = mysqli_query(
+            $mw_mysql,
+            'SET STATEMENT max_statement_time=10 FOR ' .
+            'SELECT COUNT(*) as count FROM `page`' .
+            ' JOIN `revision` ON `rev_page` = `page_id`' .
+            ' JOIN `comment` ON `rev_comment_id` = `comment_id`' .
+            " WHERE `page_namespace` = '" .
+            mysqli_real_escape_string($mw_mysql, $nsid) .
+            "' AND `page_title` = '" .
+            mysqli_real_escape_string($mw_mysql, $title) .
+            "' AND `rev_timestamp` > '" .
+            mysqli_real_escape_string($mw_mysql, $timestamp) .
+            "' AND `comment_text` LIKE 'Revert%'"
+        );
+
+        if ($res === false) {
+            $logger->addWarning("page recent reverts query returned no data for " . $title .
+                                " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
+        } else {
+            $d = mysqli_fetch_assoc($res);
+            $data['common']['num_recent_reversions'] = $d['count'];
+        }
+    } catch (mysqli_sql_exception $e) {
+        if ($e->getCode() == 1969) {
+            $logger->addWarning("page recent reverts query timed out for " . $title .
+                                " (" . $nsid . ") > " . $timestamp);
+        } else {
+            $logger->addError("page recent reverts query returned an error for " . $title .
+                              " (" . $nsid . ") > " . $timestamp . ": " . $e->getMessage());
+        }
     }
+
     if (
         filter_var($user, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ||
         filter_var($user, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
     ) {
         $data['user_reg_time'] = time();
-        $res = mysqli_query(
-            $mw_mysql,
-            'SET STATEMENT max_statement_time=10 FOR ' .
-            'SELECT COUNT(*) AS `user_editcount` FROM `revision_userindex` ' .
-            ' JOIN `actor` ON `actor_id` = `rev_actor`' .
-            ' WHERE `actor_name` = "' .
-            mysqli_real_escape_string($mw_mysql, $user) . '"'
-        );
-        if ($res === false) {
-            $logger->addWarning("user edit count query returned no data for (invalid ip) " .
-                                $user . ": " . mysqli_error($mw_mysql));
-        } else {
-            $d = mysqli_fetch_assoc($res);
-            $data['user_edit_count'] = $d['user_editcount'];
-        }
-    } else {
-        $res = mysqli_query(
-            $mw_mysql,
-            'SET STATEMENT max_statement_time=10 FOR ' .
-            'SELECT `user_registration` FROM `user` WHERE `user_name` = "' .
-            mysqli_real_escape_string($mw_mysql, $user) . '"'
-        );
-        $d = mysqli_fetch_assoc($res);
-        if ($res === false) {
-            $logger->addWarning("user registration query returned no data for " .
-                                $user . ": " . mysqli_error($mw_mysql));
-        } else {
-            $data['user_reg_time'] = $d['user_registration'];
-        }
-        if (!$data['user_reg_time']) {
+
+        try {
             $res = mysqli_query(
                 $mw_mysql,
                 'SET STATEMENT max_statement_time=10 FOR ' .
-                'SELECT `rev_timestamp` FROM `revision_userindex` ' .
+                'SELECT COUNT(*) AS `user_editcount` FROM `revision_userindex` ' .
                 ' JOIN `actor` ON `actor_id` = `rev_actor`' .
                 ' WHERE `actor_name` = "' .
-                mysqli_real_escape_string($mw_mysql, $user) . '" ORDER BY `rev_timestamp` LIMIT 0,1'
+                mysqli_real_escape_string($mw_mysql, $user) . '"'
             );
+
             if ($res === false) {
-                $logger->addWarning("user registration via revision query returned no data for " .
+                $logger->addWarning("user edit count query returned no data for (invalid ip) " .
                                     $user . ": " . mysqli_error($mw_mysql));
             } else {
                 $d = mysqli_fetch_assoc($res);
-                $data['user_reg_time'] = $d['rev_timestamp'];
+                $data['user_edit_count'] = $d['user_editcount'];
+            }
+        } catch (mysqli_sql_exception $e) {
+            if ($e->getCode() == 1969) {
+                $logger->addWarning("user edit count query timed out for " . $user);
+            } else {
+                $logger->addError("user edit count query returned an error for " . $user . ": " .
+                                  $e->getMessage());
             }
         }
+    } else {
+        try {
+            $res = mysqli_query(
+                $mw_mysql,
+                'SET STATEMENT max_statement_time=10 FOR ' .
+                'SELECT `user_registration` FROM `user` WHERE `user_name` = "' .
+                mysqli_real_escape_string($mw_mysql, $user) . '"'
+            );
+
+            $d = mysqli_fetch_assoc($res);
+            if ($res === false) {
+                $logger->addWarning("user registration query returned no data for " .
+                                    $user . ": " . mysqli_error($mw_mysql));
+            } else {
+                $data['user_reg_time'] = $d['user_registration'];
+            }
+        } catch (mysqli_sql_exception $e) {
+            if ($e->getCode() == 1969) {
+                $logger->addWarning("user registration query timed out for " . $user);
+            } else {
+                $logger->addError("user registration query returned an error for " . $user . ": " .
+                                  $e->getMessage());
+            }
+        }
+
+        if (!$data['user_reg_time']) {
+            try {
+                $res = mysqli_query(
+                    $mw_mysql,
+                    'SET STATEMENT max_statement_time=10 FOR ' .
+                    'SELECT `rev_timestamp` FROM `revision_userindex` ' .
+                    ' JOIN `actor` ON `actor_id` = `rev_actor`' .
+                    ' WHERE `actor_name` = "' .
+                    mysqli_real_escape_string($mw_mysql, $user) . '" ORDER BY `rev_timestamp` LIMIT 0,1'
+                );
+
+                if ($res === false) {
+                    $logger->addWarning("user registration via revision query returned no data for " .
+                                        $user . ": " . mysqli_error($mw_mysql));
+                } else {
+                    $d = mysqli_fetch_assoc($res);
+                    $data['user_reg_time'] = $d['rev_timestamp'];
+                }
+            } catch (mysqli_sql_exception $e) {
+                if ($e->getCode() == 1969) {
+                    $logger->addWarning("user registration via revision query timed out for " . $user);
+                } else {
+                    $logger->addError("user registration via revision query returned an error for " . $user .
+                                      ": " . $e->getMessage());
+                }
+            }
+        }
+
+        try {
+            $res = mysqli_query(
+                $mw_mysql,
+                'SET STATEMENT max_statement_time=10 FOR ' .
+                'SELECT `user_editcount` FROM `user` WHERE `user_name` =  "' .
+                mysqli_real_escape_string($mw_mysql, $user) . '"'
+            );
+
+            if ($res === false) {
+                $logger->addWarning("user edit count query returned no data for " .
+                                    $user . ": " . mysqli_error($mw_mysql));
+            } else {
+                $d = mysqli_fetch_assoc($res);
+                $data['user_edit_count'] = $d['user_editcount'];
+            }
+        } catch (mysqli_sql_exception $e) {
+            if ($e->getCode() == 1969) {
+                $logger->addWarning("user edit count query timed out for " . $user);
+            } else {
+                $logger->addError("user edit count query returned an error for " . $user . ": " .
+                                  $e->getMessage());
+            }
+        }
+    }
+
+    try {
         $res = mysqli_query(
             $mw_mysql,
             'SET STATEMENT max_statement_time=10 FOR ' .
-            'SELECT `user_editcount` FROM `user` WHERE `user_name` =  "' .
-            mysqli_real_escape_string($mw_mysql, $user) . '"'
+            'SELECT COUNT(*) as count FROM `page`' .
+            ' JOIN `revision` ON `rev_page` = `page_id`' .
+            ' JOIN `comment` ON `rev_comment_id` = `comment_id`' .
+            " WHERE `page_namespace` = 3 AND `page_title` = '" .
+            mysqli_real_escape_string($mw_mysql, $userPage) .
+            "' AND (`comment_text` LIKE '%warning%' OR `comment_text`" .
+            " LIKE 'General note: Nonconstructive%')"
         );
+
         if ($res === false) {
-            $logger->addWarning("user edit count query returned no data for " .
-                                $user . ": " . mysqli_error($mw_mysql));
+            $logger->addWarning("user warnings count query returned no data for " .
+                                $userPage . ": " . mysqli_error($mw_mysql));
         } else {
             $d = mysqli_fetch_assoc($res);
-            $data['user_edit_count'] = $d['user_editcount'];
+            $data['user_warns'] = $d['count'];
+        }
+    } catch (mysqli_sql_exception $e) {
+        if ($e->getCode() == 1969) {
+            $logger->addWarning("user warnings count query timed out for " . $user);
+        } else {
+            $logger->addError("user warnings count query returned an error for " . $user . ": " .
+                              $e->getMessage());
         }
     }
-    $res = mysqli_query(
-        $mw_mysql,
-        'SET STATEMENT max_statement_time=10 FOR ' .
-        'SELECT COUNT(*) as count FROM `page`' .
-        ' JOIN `revision` ON `rev_page` = `page_id`' .
-        ' JOIN `comment` ON `rev_comment_id` = `comment_id`' .
-        " WHERE `page_namespace` = 3 AND `page_title` = '" .
-        mysqli_real_escape_string($mw_mysql, $userPage) .
-        "' AND (`comment_text` LIKE '%warning%' OR `comment_text`" .
-        " LIKE 'General note: Nonconstructive%')"
-    );
-    if ($res === false) {
-        $logger->addWarning("user warnings query returned no data for " .
-                            $userPage . ": " . mysqli_error($mw_mysql));
-    } else {
-        $d = mysqli_fetch_assoc($res);
-        $data['user_warns'] = $d['count'];
-    }
-    $res = mysqli_query(
-        $mw_mysql,
-        'SET STATEMENT max_statement_time=10 FOR ' .
-        'SELECT count(distinct rev_page) AS count FROM' .
-        ' `revision_userindex` JOIN `actor` ON `actor_id` = `rev_actor`' .
-        " WHERE `actor_name` = '" . mysqli_real_escape_string($mw_mysql, $userPage) . "'"
-    );
-    if ($res !== false) {
-        $d = mysqli_fetch_assoc($res);
-        $data['user_distinct_pages'] = $d['count'];
+
+    try {
+        $res = mysqli_query(
+            $mw_mysql,
+            'SET STATEMENT max_statement_time=10 FOR ' .
+            'SELECT count(distinct rev_page) AS count FROM' .
+            ' `revision_userindex` JOIN `actor` ON `actor_id` = `rev_actor`' .
+            " WHERE `actor_name` = '" . mysqli_real_escape_string($mw_mysql, $userPage) . "'"
+        );
+
+        if ($res !== false) {
+            $d = mysqli_fetch_assoc($res);
+            $data['user_distinct_pages'] = $d['count'];
+        }
+    } catch (mysqli_sql_exception $e) {
+        if ($e->getCode() == 1969) {
+            $logger->addWarning("user distinct page edits query timed out for " . $userPage);
+        } else {
+            $logger->addError("user distinct page edits query returned an error for " . $userPage .
+                              ": " . $e->getMessage());
+        }
     }
     if ($data['common']['page_made_time']) {
         $data['common']['page_made_time'] = gmmktime(
