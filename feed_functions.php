@@ -128,7 +128,7 @@ class Feed
         $rchange['edit_reason'] = $why;
         $rchange['edit_score'] = $score;
 
-        if (!in_array('raw_line', $change)) {
+        if (!array_key_exists('rawline', $change)) {
             return;
         }
 

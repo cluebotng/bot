@@ -56,7 +56,7 @@ class Process
         }
         $change = parseFeedData($change);
         $change['justtitle'] = $change['title'];
-        if (in_array('namespace', $change) && $change['namespace'] != 'Main:') {
+        if (array_key_exists('namespace', $change) && $change['namespace'] != 'Main:') {
             $change['title'] = $change['namespace'] . $change['title'];
         }
         self::processEditThread($change);
