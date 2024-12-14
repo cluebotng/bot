@@ -30,6 +30,7 @@ class Action
         if (!Config::$dry) {
             if ($warning >= 4) {
                 /* Report them if they have been warned 4 times. */
+                $logger->addInfo("Reporting " . $change['user'] . " (" . $warning . ") to AIV");
                 self::aiv($change, $report);
             } else {
                 /* Warn them if they haven't been warned 4 times. */
