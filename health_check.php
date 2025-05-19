@@ -36,10 +36,6 @@ if (Config::$pass == null) {
 
  /* Configure API access */
  Api::init($logger);
-if (!Api::$a->login(Config::$user, Config::$pass)) {
-    $logger->addError('Failed to authenticate with wikipedia');
-    exit(1);
-}
 
  /* Get our last edit time */
  $usercontribs = Api::$a->usercontribs(Config::$user, 1);
