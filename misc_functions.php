@@ -62,5 +62,6 @@ function doInit()
     Globals::$run = Api::$q->getpage('User:' . Config::$user . '/Run');
     Globals::$optin = Api::$q->getpage('User:' . Config::$user . '/Optin');
     Globals::$aoptin = Api::$q->getpage('User:' . Config::$user . '/AngryOptin');
+    Globals::$metrics = new Metrics($logger, Config::$metrics_endpoint);
     loadHuggleWhitelist();
 }

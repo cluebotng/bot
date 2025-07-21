@@ -42,4 +42,5 @@ namespace CluebotNG;
         public static $relay_port = 3334;
         public static $fork = true;
         public static $dry = false;
+        public static $metrics_endpoint = 'http://localhost:9091';
     }

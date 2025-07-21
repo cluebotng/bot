@@ -68,4 +68,5 @@ class Globals
         'gadget definition' => 2302,
         'gadget definition talk' => 2303,
     );
+    public static $metrics;
 }
