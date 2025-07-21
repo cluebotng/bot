@@ -39,7 +39,6 @@ pcntl_signal(SIGCHLD, function ($signo, $siginfo) {
 });
 date_default_timezone_set('UTC');
 doInit();
-IRC::init();
 
 for (;;) {
     Feed::connectLoop();

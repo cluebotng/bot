@@ -23,8 +23,6 @@ namespace CluebotNG;
 
 class IRC
 {
-    private static $chans = array();
-
     public static function split($message)
     {
         if (!$message) {
@@ -86,23 +84,6 @@ class IRC
         $return['raw'] = $message;
 
         return $return;
-    }
-
-    public static function init()
-    {
-        $ircconfig = explode("\n", Api::$q->getpage('User:' . Config::$owner . '/CBChannels.js'));
-        $tmp = array();
-        foreach ($ircconfig as $tmpline) {
-            if (strlen($tmpline) > 1) {
-                if ($tmpline[0] != '#') {
-                    $tmpline = explode('=', $tmpline, 2);
-                    if (count($tmpline) == 2) {
-                        $tmp[trim($tmpline[0])] = trim($tmpline[1]);
-                    }
-                }
-            }
-        }
-        self::$chans = $tmp;
     }
 
     public static function spam($message)
