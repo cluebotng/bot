@@ -26,13 +26,11 @@ pcntl_async_signals(true);
 pcntl_signal(SIGCHLD, function ($signo, $siginfo) {
     switch ($signo) {
         case SIGCHLD:
-            echo "Got SIGCHLD ...\n";
             while (($x = pcntl_waitpid(0, $status, WNOHANG)) != -1) {
                 if ($x == 0) {
                     break;
                 }
                 $status = pcntl_wexitstatus($status);
-                echo "PID $x exited with status $status\n";
             }
             break;
     }
