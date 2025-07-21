@@ -59,6 +59,8 @@ class Process
         if (array_key_exists('namespace', $change) && $change['namespace'] != 'Main:') {
             $change['title'] = $change['namespace'] . $change['title'];
         }
+
+        Globals::$metrics->incrementCounter("edits_processed");
         self::processEditThread($change);
         if (Config::$fork) {
             die();

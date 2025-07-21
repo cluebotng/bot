@@ -48,7 +48,12 @@ class Metrics
     {
         # Note: By full path rather than `use` so we can selectively require the `Prometheus` client package
         $this->registry = new \Prometheus\CollectorRegistry(new \Prometheus\Storage\InMemory(), false);
-        $this->metrics["test"] = $this->registry->registerCounter('test', 'some_counter', 'it increases', ['type']);
+
+        $this->metrics["edits_processed"] = $this->registry->registerCounter(
+            'cbng',
+            'edits_processed',
+            'Total number of edits send for processing from the feed'
+        );
     }
 
     function __destruct()
