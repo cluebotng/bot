@@ -28,6 +28,7 @@ class Feed
     public static $channel = '#en.wikipedia';
     private static $fd;
     public static $wlTimer;
+    public static $metricsTimer;
 
     public static function connectLoop()
     {
@@ -118,6 +119,12 @@ class Feed
             $logger->addInfo('Reloading huggle whitelist on timer');
             Feed::$wlTimer = time();
             loadHuggleWhitelist();
+        }
+
+        if (!Feed::$metricsTimer || Feed::$metricsTimer + 60 <= time()) {
+            $logger->addDebug('Pushing metrics on timer');
+            Feed::$metricsTimer = time();
+            Globals::$metrics->pushMetrics("parent");
         }
     }
 

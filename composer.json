@@ -14,7 +14,9 @@
     ],
     "require": {
         "monolog/monolog": "^1.17",
-        "cluebotng/wikipedia": "^v1.0.9"
+        "cluebotng/wikipedia": "^v1.0.9",
+        "promphp/prometheus_client_php": "^2.14",
+        "promphp/prometheus_push_gateway_php": "^1.1"
     },
     "config": {
         "platform": {
