@@ -54,13 +54,48 @@ class Metrics
             'edits_processed',
             'Total number of edits send for processing from the feed'
         );
-    }
 
-    function __destruct()
-    {
-        if ($this->enabled) {
-            $this->pushMetrics();
-        }
+        $this->metrics["edits_missing_data"] = $this->registry->registerCounter(
+            'cbng',
+            'edits_missing_data',
+            'Total number of edits missing data for processing'
+        );
+
+        $this->metrics["edits_below_threshold"] = $this->registry->registerCounter(
+            'cbng',
+            'edits_below_threshold',
+            'Total number of edits below the threshold for vandalism'
+        );
+
+        $this->metrics["edits_user_whitelisted"] = $this->registry->registerCounter(
+            'cbng',
+            'edits_user_whitelisted',
+            'Total number of edits with a whitelisted user'
+        );
+
+        $this->metrics["edits_reverted"] = $this->registry->registerCounter(
+            'cbng',
+            'edits_reverted',
+            'Total number of reverted edits'
+        );
+
+        $this->metrics["edits_not_reverted"] = $this->registry->registerCounter(
+            'cbng',
+            'edits_not_reverted',
+            'Total number of beaten edits'
+        );
+
+        $this->metrics["last_successfully_processed_edit"] = $this->registry->registerGauge(
+            'cbng',
+            'last_successfully_processed_edit',
+            'Unix timestamp of last successfully processed edit'
+        );
+
+        $this->metrics["last_reverted_edit"] = $this->registry->registerGauge(
+            'cbng',
+            'last_reverted_edit',
+            'Unix timestamp of last successfully reverted edit'
+        );
     }
 
     public function pushMetrics($instance_identifier = null)
@@ -84,5 +119,18 @@ class Metrics
             return;
         }
         $this->metrics[$metric]->incBy($incrementBy, $values);
+    }
+
+    public function setGauge($metric, $value, $values = array())
+    {
+        if (!$this->enabled) {
+            return;
+        }
+
+        if (!array_key_exists($metric, $this->metrics)) {
+            $this->logger->addWarning("No metric found for '$metric'");
+            return;
+        }
+        $this->metrics[$metric]->set($value, $values);
     }
 }

@@ -121,10 +121,14 @@ class Feed
             loadHuggleWhitelist();
         }
 
-        if (!Feed::$metricsTimer || Feed::$metricsTimer + 60 <= time()) {
+        if (!Feed::$metricsTimer || Feed::$metricsTimer + 10 <= time()) {
             $logger->addDebug('Pushing metrics on timer');
             Feed::$metricsTimer = time();
-            Globals::$metrics->pushMetrics("parent");
+
+            if (pcntl_fork() == 0) {
+                Globals::$metrics->pushMetrics("parent");
+                die();
+            }
         }
     }
 

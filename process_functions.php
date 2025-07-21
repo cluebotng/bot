@@ -75,17 +75,20 @@ class Process
         $s = null;
         if (!array_key_exists('all', $change)) {
             Feed::bail($change, 'Missing edit data', $s);
+            Globals::$metrics->incrementCounter("edits_missing_data");
             return;
         }
 
         if (!isVandalism($change['all'], $s)) {
             Feed::bail($change, 'Below threshold', $s);
+            Globals::$metrics->incrementCounter("edits_below_threshold");
             return;
         }
 
         if (Action::isWhitelisted($change['user'])) {
             $logger->addInfo("User " . $change['user'] . " is whitelisted");
             Feed::bail($change, 'Whitelisted', $s);
+            Globals::$metrics->incrementCounter("edits_user_whitelisted");
             return;
         }
         $reason = 'ANN scored at ' . $s;
@@ -114,6 +117,7 @@ class Process
         );
         list($shouldRevert, $revertReason) = Action::shouldRevert($change);
         $change['revert_reason'] = $revertReason;
+
         if ($shouldRevert) {
             $logger->addInfo("Reverting");
             $rbret = Action::doRevert($change);
@@ -126,6 +130,9 @@ class Process
                 Action::doWarn($change, $report);
                 Db::vandalismReverted($change['mysqlid']);
                 Feed::bail($change, $revertReason, $s, true);
+
+                Globals::$metrics->setGauge("last_reverted_edit", time());
+                Globals::$metrics->incrementCounter("edits_reverted");
             } else {
                 $change['edit_status'] = 'beaten';
                 $rv2 = Api::$a->revisions($change['title'], 1);
@@ -136,10 +143,14 @@ class Process
                     );
                     Db::vandalismRevertBeaten($change['mysqlid'], $change['title'], $rv2[0]['user'], $change['url']);
                     Feed::bail($change, 'Beaten by ' . $rv2[0]['user'], $s);
+                    Globals::$metrics->incrementCounter("edits_revert_beaten");
                 }
             }
+
+            Globals::$metrics->setGauge("last_successfully_processed_edit", time());
         } else {
             Feed::bail($change, $revertReason, $s);
+            Globals::$metrics->incrementCounter("edits_not_reverted");
         }
     }
 }
