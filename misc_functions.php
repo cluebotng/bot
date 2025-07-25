@@ -48,9 +48,8 @@ function loadHuggleWhitelist()
 function doInit()
 {
     global $logger;
-    if (Config::$pass == null) {
-        Config::$pass = trim(file_get_contents(getenv('HOME') . '/.cluebotng.bot.password'));
-    }
+    Config::init();
+
     Api::init($logger);
     if (!Api::$a->login(Config::$user, Config::$pass)) {
         $logger->addError('Failed to authenticate');

@@ -30,20 +30,17 @@ namespace CluebotNG;
  require_once 'cluebot-ng.config.php';
  require_once 'api.php';
 
-if (Config::$pass == null) {
-    Config::$pass = trim(file_get_contents(getenv('HOME') . '/.cluebotng.bot.password'));
-}
-
  /* Configure API access */
- Api::init($logger);
+Config::init();
+Api::init($logger);
 
- /* Get our last edit time */
- $usercontribs = Api::$a->usercontribs(Config::$user, 1);
+/* Get our last edit time */
+$usercontribs = Api::$a->usercontribs(Config::$user, 1);
 if (count($usercontribs) != 1) {
     $logger->addError('Failed to find usercontribs for ' . $Config::$user);
     exit(1);
 }
- $last_contrib_timestamp = $usercontribs[0]['timestamp'];
+$last_contrib_timestamp = $usercontribs[0]['timestamp'];
 
  /* If we edited in the last 15min, then all good */
 if (strtotime($last_contrib_timestamp) > (time() - 900)) {
