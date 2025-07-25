@@ -1,11 +1,3 @@
-# Config stuff
-cluebot-ng.config.php
-
-# Editor
-.idea/
-*.iml
-
-# Temp stuff
+# Build tools
 vendor
-titles.txt
 .phplint-cache
