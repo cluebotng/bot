@@ -48,24 +48,39 @@ function checkMySQL()
     }
 }
 
-function connect_to_mysql()
+function connect_to_mysql($exclude_credentials = array())
 {
+    $mysql_credential_entry = null;
     if (count(Config::$mw_mysql_credentials) > 0) {
-        $entry = rand(0, count(Config::$mw_mysql_credentials) - 1);
-        $mw_mysql_user = Config::$mw_mysql_credentials[$entry]['user'];
-        $mw_mysql_pass = Config::$mw_mysql_credentials[$entry]['pass'];
+        $candidate_credentials = Config::$mw_mysql_credentials;
+        foreach ($exclude_credentials as $excluded_credential) {
+            unset($candidate_credentials[$excluded_credential]);
+        }
+        $mysql_credential_entry = rand(0, count($candidate_credentials) - 1);
+        $mw_mysql_user = $candidate_credentials[$mysql_credential_entry]['user'];
+        $mw_mysql_pass = $candidate_credentials[$mysql_credential_entry]['pass'];
+    } elseif (count($exclude_credentials) > 0) {
+        die('ran out of database credentials');
     } else {
         $mw_mysql_user = Config::$mw_mysql_user;
         $mw_mysql_pass = Config::$mw_mysql_pass;
     }
 
-    $mw_mysql = @mysqli_connect(
-        'p:' . Config::$mw_mysql_host,
-        $mw_mysql_user,
-        $mw_mysql_pass,
-        Config::$mw_mysql_db,
-        Config::$mw_mysql_port
-    );
+    try {
+        $mw_mysql = @mysqli_connect(
+            Config::$mw_mysql_host,
+            $mw_mysql_user,
+            $mw_mysql_pass,
+            Config::$mw_mysql_db,
+            Config::$mw_mysql_port
+        );
+    } catch (mysqli_sql_exception $e) {
+        if ($e->getCode() == 1226 && $mysql_credential_entry != null) {
+            $logger->addWarning("ran out of database connections for " . $mw_mysql_user);
+            $exclude_credentials[] = $mysql_credential_entry;
+            return connect_to_mysql($exclude_credentials);
+        }
+    }
     if (!$mw_mysql) {
         die('replica mysql error: ' . mysqli_connect_error());
     }
