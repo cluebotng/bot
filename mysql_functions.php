@@ -50,6 +50,7 @@ function checkMySQL()
 
 function connect_to_mysql($exclude_credentials = array())
 {
+    global $logger;
     $mysql_credential_entry = null;
     if (count(Config::$mw_mysql_credentials) > 0) {
         $candidate_credentials = Config::$mw_mysql_credentials;
