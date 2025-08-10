@@ -46,7 +46,10 @@ class Config
     public static $relay_port = 3334;
     public static $fork = true;
     public static $dry = false;
-    public static $metrics_endpoint = null;
+    public static $cb_redis_host = 'redis';
+    public static $cb_redis_port = 6379;
+    public static $cb_redis_db = 1;
+    public static $cb_redis_pass = '';
 
     public static function init()
     {
@@ -58,8 +61,11 @@ class Config
 
         self::$mw_mysql_user = getenv('TOOL_REPLICA_USER');
         self::$mw_mysql_pass = getenv('TOOL_REPLICA_PASSWORD');
+
         self::$cb_mysql_user = getenv('TOOL_TOOLSDB_USER');
         self::$cb_mysql_pass = getenv('TOOL_TOOLSDB_PASSWORD');
+
+        self::$cb_redis_pass = getenv('REDIS_PASSWORD');
 
         if ($mysql_credentials = getenv('CBNG_BOT_MYSQL_CREDENTIALS')) {
             self::$mw_mysql_credentials = json_decode($mysql_credentials, true);
