@@ -14,13 +14,14 @@
     ],
     "require": {
         "monolog/monolog": "^1.17",
-        "cluebotng/wikipedia": "^v1.0.9"
+        "cluebotng/wikipedia": "^v1.0.9",
+        "ext-pcntl": "*",
+        "ext-json": "*",
+        "ext-redis": "*"
     },
     "config": {
         "platform": {
-            "php": "8.4",
-            "ext-pcntl": "*",
-            "ext-json": "*"
+            "php": "8.4"
         }
     },
     "license": "GNU General Public License"

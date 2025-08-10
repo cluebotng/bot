@@ -194,14 +194,10 @@ class Action
 
             return array(true, 'Angry-reverting on angry-optin');
         }
-        $titles = unserialize(file_get_contents('titles.txt'));
-        if (
-            !isset($titles[$change['title'] . $change['user']])
-            or ((time() - $titles[$change['title'] . $change['user']]) > (24 * 60 * 60))
-        ) {
-            $titles[$change['title'] . $change['user']] = time();
-            file_put_contents('titles.txt', serialize($titles));
 
+        $last_revert_time = KeyValueStore::getLastRevertTime($change['title'], $change['user']);
+        if (!$last_revert_time or (time() - $last_revert_time) > (24 * 60 * 60)) {
+            KeyValueStore::saveRevertTime($change['title'], $change['user']);
             return array(true, $reason);
         }
 

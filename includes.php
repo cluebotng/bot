@@ -54,3 +54,4 @@ require_once 'api.php';
 require_once 'process_functions.php';
 require_once 'misc_functions.php';
 require_once 'db_functions.php';
+require_once 'redis_functions.php';
