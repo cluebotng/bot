@@ -54,6 +54,11 @@ class Process
                 return;
             }
         }
+        if (Action::isWhitelisted($change['user'])) {
+            $logger->addInfo("User " . $change['user'] . " is whitelisted");
+            Feed::bail($change, 'Whitelisted', null);
+            return;
+        }
         $change = parseFeedData($change);
         $change['justtitle'] = $change['title'];
         if (array_key_exists('namespace', $change) && $change['namespace'] != 'Main:') {
@@ -81,11 +86,6 @@ class Process
             return;
         }
 
-        if (Action::isWhitelisted($change['user'])) {
-            $logger->addInfo("User " . $change['user'] . " is whitelisted");
-            Feed::bail($change, 'Whitelisted', $s);
-            return;
-        }
         $reason = 'ANN scored at ' . $s;
         $heuristic = '';
         $log = null;
