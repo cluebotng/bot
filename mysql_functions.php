@@ -61,14 +61,17 @@ function connect_to_mysql($exclude_credentials = array())
         $mw_mysql_user = $candidate_credentials[$mysql_credential_entry]['user'];
         $mw_mysql_pass = $candidate_credentials[$mysql_credential_entry]['pass'];
     } elseif (count($exclude_credentials) > 0) {
-        die('ran out of database credentials');
+        $logger->addError("ran out of database credentials");
+        die();
     } else {
         $mw_mysql_user = Config::$mw_mysql_user;
         $mw_mysql_pass = Config::$mw_mysql_pass;
     }
 
     try {
-        $mw_mysql = @mysqli_connect(
+        $mw_mysql = mysqli_init();
+        $mw_mysql->options(MYSQLI_OPT_CONNECT_TIMEOUT, 10);
+        $mw_mysql->real_connect(
             Config::$mw_mysql_host,
             $mw_mysql_user,
             $mw_mysql_pass,
@@ -78,6 +81,7 @@ function connect_to_mysql($exclude_credentials = array())
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1226 && $mysql_credential_entry != null) {
             $logger->addWarning("ran out of database connections for " . $mw_mysql_user);
+            usleep(10000);
             $exclude_credentials[] = $mysql_credential_entry;
             return connect_to_mysql($exclude_credentials);
         }
@@ -111,7 +115,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     try {
         $res = mysqli_query(
             $mw_mysql,
-            'SET STATEMENT max_statement_time=10 FOR ' .
+            'SET STATEMENT max_statement_time=30 FOR ' .
             'SELECT `rev_timestamp`, `actor_name` FROM `page`' .
             ' JOIN `revision` ON `rev_page` = `page_id`' .
             ' JOIN `actor` ON `actor_id` = `rev_actor`' .
@@ -141,7 +145,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     try {
         $res = mysqli_query(
             $mw_mysql,
-            'SET STATEMENT max_statement_time=10 FOR ' .
+            'SET STATEMENT max_statement_time=30 FOR ' .
             'SELECT COUNT(*) as count FROM `page`' .
             ' JOIN `revision` ON `rev_page` = `page_id`' .
             ' WHERE `page_namespace` = "' .
@@ -172,7 +176,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     try {
         $res = mysqli_query(
             $mw_mysql,
-            'SET STATEMENT max_statement_time=10 FOR ' .
+            'SET STATEMENT max_statement_time=30 FOR ' .
             'SELECT COUNT(*) as count FROM `page`' .
             ' JOIN `revision` ON `rev_page` = `page_id`' .
             ' JOIN `comment` ON `rev_comment_id` = `comment_id`' .
@@ -211,7 +215,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         try {
             $res = mysqli_query(
                 $mw_mysql,
-                'SET STATEMENT max_statement_time=10 FOR ' .
+                'SET STATEMENT max_statement_time=30 FOR ' .
                 'SELECT COUNT(*) AS `user_editcount` FROM `revision_userindex` ' .
                 ' JOIN `actor` ON `actor_id` = `rev_actor`' .
                 ' WHERE `actor_name` = "' .
@@ -237,7 +241,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         try {
             $res = mysqli_query(
                 $mw_mysql,
-                'SET STATEMENT max_statement_time=10 FOR ' .
+                'SET STATEMENT max_statement_time=30 FOR ' .
                 'SELECT `user_registration` FROM `user` WHERE `user_name` = "' .
                 mysqli_real_escape_string($mw_mysql, $user) . '"'
             );
@@ -262,7 +266,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             try {
                 $res = mysqli_query(
                     $mw_mysql,
-                    'SET STATEMENT max_statement_time=10 FOR ' .
+                    'SET STATEMENT max_statement_time=30 FOR ' .
                     'SELECT `rev_timestamp` FROM `revision_userindex` ' .
                     ' JOIN `actor` ON `actor_id` = `rev_actor`' .
                     ' WHERE `actor_name` = "' .
@@ -289,7 +293,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         try {
             $res = mysqli_query(
                 $mw_mysql,
-                'SET STATEMENT max_statement_time=10 FOR ' .
+                'SET STATEMENT max_statement_time=30 FOR ' .
                 'SELECT `user_editcount` FROM `user` WHERE `user_name` =  "' .
                 mysqli_real_escape_string($mw_mysql, $user) . '"'
             );
@@ -314,7 +318,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     try {
         $res = mysqli_query(
             $mw_mysql,
-            'SET STATEMENT max_statement_time=10 FOR ' .
+            'SET STATEMENT max_statement_time=30 FOR ' .
             'SELECT COUNT(*) as count FROM `page`' .
             ' JOIN `revision` ON `rev_page` = `page_id`' .
             ' JOIN `comment` ON `rev_comment_id` = `comment_id`' .
@@ -343,7 +347,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     try {
         $res = mysqli_query(
             $mw_mysql,
-            'SET STATEMENT max_statement_time=10 FOR ' .
+            'SET STATEMENT max_statement_time=30 FOR ' .
             'SELECT count(distinct rev_page) AS count FROM' .
             ' `revision_userindex` JOIN `actor` ON `actor_id` = `rev_actor`' .
             " WHERE `actor_name` = '" . mysqli_real_escape_string($mw_mysql, $userPage) . "'"
