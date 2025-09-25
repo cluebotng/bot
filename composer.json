@@ -16,6 +16,7 @@
         "monolog/monolog": "^1.17",
         "cluebotng/wikipedia": "^v1.0.9",
         "ext-pcntl": "*",
+	"ext-redis": "*",
         "ext-json": "*"
     },
     "config": {
