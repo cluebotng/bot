@@ -29,7 +29,7 @@ class KeyValueStore
         if (!Globals::$cb_redis || !Globals::$cb_redis->ping()) {
             try {
                 $redis = new \Redis();
-                $redis->pconnect(Config::$cb_redis_host, Config::$cb_redis_port);
+                $redis->pconnect(Config::$cb_redis_host, Config::$cb_redis_port, 2);
                 $redis->auth(Config::$cb_redis_pass);
                 $redis->select(Config::$cb_redis_db);
 
@@ -48,12 +48,18 @@ class KeyValueStore
     public static function getLastRevertTime($page_title, $user)
     {
         self::checkConnection();
+        if (Globals::$cb_redis === null) {
+            return null;
+        }
         return Globals::$cb_redis->get(self::getKey($page_title, $user));
     }
 
     public static function saveRevertTime($page_title, $user)
     {
         self::checkConnection();
+        if (Globals::$cb_redis === null) {
+            return false;
+        }
         return Globals::$cb_redis->set(self::getKey($page_title, $user), time());
     }
 }

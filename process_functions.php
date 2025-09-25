@@ -88,7 +88,6 @@ class Process
 
         $reason = 'ANN scored at ' . $s;
         $heuristic = '';
-        $log = null;
         $diff = 'https://en.wikipedia.org/w/index.php' .
             '?title=' . urlencode($change['title']) .
             '&diff=' . urlencode($change['revid']) .
