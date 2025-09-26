@@ -27,6 +27,12 @@ include 'vendor/autoload.php';
 // Logger
 $logger = new \Monolog\Logger('cluebotng');
 
+// Add the current PID into the log output
+$logger->pushProcessor(function ($record) {
+    $record['extra']['current_pid'] = getmypid();
+    return $record;
+});
+
 // Log to disk unless we are in a build pack
 if (!getenv('NO_HOME')) {
     $logger->pushHandler(
