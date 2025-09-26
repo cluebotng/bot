@@ -54,18 +54,33 @@ class Process
                 return;
             }
         }
+        if (Config::$fork) {
+            $pid = pcntl_fork();
+            if ($pid == -1) {
+                $logger->addError("Failed to fork");
+                die();
+            }
+            if ($pid != 0) {
+                // Parentq
+                $logger->addDebug("Created fork with " . $pid);
+                return;
+            }
+            // Child
+            $logger->addDebug("Fork started");
+        }
+        $change = parseFeedData($change);
         if (Action::isWhitelisted($change['user'])) {
             $logger->addInfo("User " . $change['user'] . " is whitelisted");
             Feed::bail($change, 'Whitelisted', null);
-            return;
+        } else {
+            $change['justtitle'] = $change['title'];
+            if (array_key_exists('namespace', $change) && $change['namespace'] != 'Main:') {
+                $change['title'] = $change['namespace'] . $change['title'];
+            }
+            self::processEditThread($change);
         }
-        $change = parseFeedData($change);
-        $change['justtitle'] = $change['title'];
-        if (array_key_exists('namespace', $change) && $change['namespace'] != 'Main:') {
-            $change['title'] = $change['namespace'] . $change['title'];
-        }
-        self::processEditThread($change);
         if (Config::$fork) {
+            $logger->addDebug("Fork finished");
             die();
         }
     }
