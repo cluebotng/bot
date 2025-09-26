@@ -47,12 +47,9 @@ class Process
             }
             Globals::$atime = time();
         }
-        if (Config::$fork) {
-            $pid = pcntl_fork();
-            if ($pid != 0) {
-                $logger->addDebug('Forked - ' . $pid);
-                return;
-            }
+        if (Action::isWhitelisted($change['user'])) {
+            $logger->addInfo("User " . $change['user'] . " is whitelisted");
+            Feed::bail($change, 'Whitelisted', null);
         }
         if (Config::$fork) {
             $pid = pcntl_fork();
@@ -61,7 +58,7 @@ class Process
                 die();
             }
             if ($pid != 0) {
-                // Parentq
+                // Parent
                 $logger->addDebug("Created fork with " . $pid);
                 return;
             }
@@ -69,16 +66,11 @@ class Process
             $logger->addDebug("Fork started");
         }
         $change = parseFeedData($change);
-        if (Action::isWhitelisted($change['user'])) {
-            $logger->addInfo("User " . $change['user'] . " is whitelisted");
-            Feed::bail($change, 'Whitelisted', null);
-        } else {
-            $change['justtitle'] = $change['title'];
-            if (array_key_exists('namespace', $change) && $change['namespace'] != 'Main:') {
-                $change['title'] = $change['namespace'] . $change['title'];
-            }
-            self::processEditThread($change);
+        $change['justtitle'] = $change['title'];
+        if (array_key_exists('namespace', $change) && $change['namespace'] != 'Main:') {
+            $change['title'] = $change['namespace'] . $change['title'];
         }
+        self::processEditThread($change);
         if (Config::$fork) {
             $logger->addDebug("Fork finished");
             die();
