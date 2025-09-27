@@ -42,8 +42,8 @@ if (count($usercontribs) != 1) {
 }
 $last_contrib_timestamp = $usercontribs[0]['timestamp'];
 
- /* If we edited in the last 15min, then all good */
-if (strtotime($last_contrib_timestamp) > (time() - 900)) {
+ /* If we edited in the last 1 hour, then all good */
+if (strtotime($last_contrib_timestamp) > (time() - 3600)) {
     $logger->addInfo('Last contribution was within last 15min (' . $last_contrib_timestamp . ')');
     exit(0);
 }
