@@ -18,6 +18,7 @@
         "ext-pcntl": "*",
         "ext-redis": "*",
         "ext-mysqli": "*",
+        "ext-curl": "*",
         "ext-json": "*"
     },
     "config": {
