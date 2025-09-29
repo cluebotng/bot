@@ -99,11 +99,27 @@ class IRC
     private static function message($channel, $message)
     {
         global $logger;
-        $logger->addInfo('Saying to ' . $channel . ': ' . $message);
-        $udp = fsockopen('udp://' . Config::$relay_host, Config::$relay_port);
-        if ($udp !== false) {
-            fwrite($udp, $channel . ':' . $message);
-            fclose($udp);
+        if (Config::$relay_use_http) {
+            $url = 'http://' . Config::$relay_host . ':' . Config::$relay_port;
+            $payload = json_encode(["channel" => $channel, "string" => $message]);
+            $logger->addInfo('Sending to ' . $url . ': ' . $payload);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            curl_exec($ch);
+            curl_close($ch);
+        } else {
+            $logger->addInfo('Saying to ' . $channel . ': ' . $message);
+            $udp = fsockopen('udp://' . Config::$relay_host, Config::$relay_port);
+            if ($udp !== false) {
+                fwrite($udp, $channel . ':' . $message);
+                fclose($udp);
+            }
         }
     }
 }
