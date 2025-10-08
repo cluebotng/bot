@@ -88,12 +88,16 @@ class IRC
 
     public static function spam($message)
     {
-        return self::message('#wikipedia-en-cbngfeed', $message);
+        if (Config::$relay_enable_spam) {
+            return self::message('#wikipedia-en-cbngfeed', $message);
+        }
     }
 
     public static function revert($message)
     {
-        return self::message('#wikipedia-en-cbngrevertfeed', $message);
+        if (Config::$relay_enable_revert) {
+            return self::message('#wikipedia-en-cbngrevertfeed', $message);
+        }
     }
 
     private static function message($channel, $message)
