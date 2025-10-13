@@ -9,7 +9,7 @@
     "repositories": [
         {
             "url": "https://github.com/cluebotng/wikipedia.git",
-            "type": "git"
+            "type": "vcs"
         }
     ],
     "require": {
