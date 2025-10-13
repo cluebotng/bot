@@ -50,6 +50,7 @@ class Process
         if (Action::isWhitelisted($change['user'])) {
             $logger->addInfo("User " . $change['user'] . " is whitelisted");
             Feed::bail($change, 'Whitelisted', null);
+            return;
         }
         if (Config::$fork) {
             $pid = pcntl_fork();
