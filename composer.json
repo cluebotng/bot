@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "monolog/monolog": "^1.17",
+        "monolog/monolog": "^3.0",
         "cluebotng/wikipedia": "^v1.0.9",
         "ext-pcntl": "*",
         "ext-redis": "*",
