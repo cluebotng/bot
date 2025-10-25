@@ -106,7 +106,7 @@ class IRC
         if (Config::$relay_use_http) {
             $url = 'http://' . Config::$relay_host . ':' . Config::$relay_port;
             $payload = json_encode(["channel" => $channel, "string" => $message]);
-            $logger->addInfo('Sending to ' . $url . ': ' . $payload);
+            $logger->info('Sending to ' . $url . ': ' . $payload);
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_TIMEOUT, 1);
@@ -118,7 +118,7 @@ class IRC
             curl_exec($ch);
             curl_close($ch);
         } else {
-            $logger->addInfo('Saying to ' . $channel . ': ' . $message);
+            $logger->info('Saying to ' . $channel . ': ' . $message);
             $udp = fsockopen('udp://' . Config::$relay_host, Config::$relay_port);
             if ($udp !== false) {
                 fwrite($udp, $channel . ':' . $message);

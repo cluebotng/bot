@@ -61,7 +61,7 @@ function connect_to_mysql($exclude_credentials = array())
         $mw_mysql_user = $candidate_credentials[$mysql_credential_entry]['user'];
         $mw_mysql_pass = $candidate_credentials[$mysql_credential_entry]['pass'];
     } elseif (count($exclude_credentials) > 0) {
-        $logger->addError("ran out of database credentials");
+        $logger->error("ran out of database credentials");
         die();
     } else {
         $mw_mysql_user = Config::$mw_mysql_user;
@@ -80,7 +80,7 @@ function connect_to_mysql($exclude_credentials = array())
         );
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1226 && $mysql_credential_entry != null) {
-            $logger->addWarning("ran out of database connections for " . $mw_mysql_user);
+            $logger->warning("ran out of database connections for " . $mw_mysql_user);
             usleep(10000);
             $exclude_credentials[] = $mysql_credential_entry;
             return connect_to_mysql($exclude_credentials);
@@ -126,7 +126,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             '" ORDER BY `rev_id` LIMIT 1'
         );
         if ($res === false) {
-            $logger->addWarning("page metadata query returned no data for " . $title .
+            $logger->warning("page metadata query returned no data for " . $title .
                                 " (" . $nsid . "): " . mysqli_error($mw_mysql));
         } else {
             $d = mysqli_fetch_assoc($res);
@@ -135,9 +135,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
-            $logger->addWarning("page metadata query timed out for " . $title . " (" . $nsid . ")");
+            $logger->warning("page metadata query timed out for " . $title . " (" . $nsid . ")");
         } else {
-            $logger->addError("page metadata query returned an error for " . $title .
+            $logger->error("page metadata query returned an error for " . $title .
                               " (" . $nsid . "): " . $e->getMessage());
         }
     }
@@ -157,7 +157,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         );
 
         if ($res === false) {
-            $logger->addWarning("page recent edits query returned no data for " . $title .
+            $logger->warning("page recent edits query returned no data for " . $title .
                                 " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
         } else {
             $d = mysqli_fetch_assoc($res);
@@ -165,10 +165,10 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
-            $logger->addWarning("page recent edits query timed out for " . $title . " (" . $nsid . ") > " .
+            $logger->warning("page recent edits query timed out for " . $title . " (" . $nsid . ") > " .
                                 $timestamp);
         } else {
-            $logger->addError("page recent edits query returned an error for " . $title .
+            $logger->error("page recent edits query returned an error for " . $title .
                               " (" . $nsid . ") > " . $timestamp . ": " . $e->getMessage());
         }
     }
@@ -190,7 +190,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         );
 
         if ($res === false) {
-            $logger->addWarning("page recent reverts query returned no data for " . $title .
+            $logger->warning("page recent reverts query returned no data for " . $title .
                                 " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
         } else {
             $d = mysqli_fetch_assoc($res);
@@ -198,10 +198,10 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
-            $logger->addWarning("page recent reverts query timed out for " . $title .
+            $logger->warning("page recent reverts query timed out for " . $title .
                                 " (" . $nsid . ") > " . $timestamp);
         } else {
-            $logger->addError("page recent reverts query returned an error for " . $title .
+            $logger->error("page recent reverts query returned an error for " . $title .
                               " (" . $nsid . ") > " . $timestamp . ": " . $e->getMessage());
         }
     }
@@ -223,7 +223,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             );
 
             if ($res === false) {
-                $logger->addWarning("user edit count query returned no data for (invalid ip) " .
+                $logger->warning("user edit count query returned no data for (invalid ip) " .
                                     $user . ": " . mysqli_error($mw_mysql));
             } else {
                 $d = mysqli_fetch_assoc($res);
@@ -231,9 +231,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             }
         } catch (mysqli_sql_exception $e) {
             if ($e->getCode() == 1969) {
-                $logger->addWarning("user edit count query timed out for " . $user);
+                $logger->warning("user edit count query timed out for " . $user);
             } else {
-                $logger->addError("user edit count query returned an error for " . $user . ": " .
+                $logger->error("user edit count query returned an error for " . $user . ": " .
                                   $e->getMessage());
             }
         }
@@ -248,16 +248,16 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
 
             $d = mysqli_fetch_assoc($res);
             if ($res === false) {
-                $logger->addWarning("user registration query returned no data for " .
+                $logger->warning("user registration query returned no data for " .
                                     $user . ": " . mysqli_error($mw_mysql));
             } else {
                 $data['user_reg_time'] = $d['user_registration'];
             }
         } catch (mysqli_sql_exception $e) {
             if ($e->getCode() == 1969) {
-                $logger->addWarning("user registration query timed out for " . $user);
+                $logger->warning("user registration query timed out for " . $user);
             } else {
-                $logger->addError("user registration query returned an error for " . $user . ": " .
+                $logger->error("user registration query returned an error for " . $user . ": " .
                                   $e->getMessage());
             }
         }
@@ -274,7 +274,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
                 );
 
                 if ($res === false) {
-                    $logger->addWarning("user registration via revision query returned no data for " .
+                    $logger->warning("user registration via revision query returned no data for " .
                                         $user . ": " . mysqli_error($mw_mysql));
                 } else {
                     $d = mysqli_fetch_assoc($res);
@@ -282,9 +282,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
                 }
             } catch (mysqli_sql_exception $e) {
                 if ($e->getCode() == 1969) {
-                    $logger->addWarning("user registration via revision query timed out for " . $user);
+                    $logger->warning("user registration via revision query timed out for " . $user);
                 } else {
-                    $logger->addError("user registration via revision query returned an error for " . $user .
+                    $logger->error("user registration via revision query returned an error for " . $user .
                                       ": " . $e->getMessage());
                 }
             }
@@ -299,7 +299,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             );
 
             if ($res === false) {
-                $logger->addWarning("user edit count query returned no data for " .
+                $logger->warning("user edit count query returned no data for " .
                                     $user . ": " . mysqli_error($mw_mysql));
             } else {
                 $d = mysqli_fetch_assoc($res);
@@ -307,9 +307,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             }
         } catch (mysqli_sql_exception $e) {
             if ($e->getCode() == 1969) {
-                $logger->addWarning("user edit count query timed out for " . $user);
+                $logger->warning("user edit count query timed out for " . $user);
             } else {
-                $logger->addError("user edit count query returned an error for " . $user . ": " .
+                $logger->error("user edit count query returned an error for " . $user . ": " .
                                   $e->getMessage());
             }
         }
@@ -329,7 +329,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         );
 
         if ($res === false) {
-            $logger->addWarning("user warnings count query returned no data for " .
+            $logger->warning("user warnings count query returned no data for " .
                                 $userPage . ": " . mysqli_error($mw_mysql));
         } else {
             $d = mysqli_fetch_assoc($res);
@@ -337,9 +337,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
-            $logger->addWarning("user warnings count query timed out for " . $user);
+            $logger->warning("user warnings count query timed out for " . $user);
         } else {
-            $logger->addError("user warnings count query returned an error for " . $user . ": " .
+            $logger->error("user warnings count query returned an error for " . $user . ": " .
                               $e->getMessage());
         }
     }
@@ -359,9 +359,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
-            $logger->addWarning("user distinct page edits query timed out for " . $userPage);
+            $logger->warning("user distinct page edits query timed out for " . $userPage);
         } else {
-            $logger->addError("user distinct page edits query returned an error for " . $userPage .
+            $logger->error("user distinct page edits query returned an error for " . $userPage .
                               ": " . $e->getMessage());
         }
     }

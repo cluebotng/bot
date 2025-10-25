@@ -35,7 +35,7 @@ class KeyValueStore
 
                 Globals::$cb_redis = $redis;
             } catch (\RedisException $e) {
-                $logger->addWarning("Redis connection failed: " . $e->getMessage());
+                $logger->warning("Redis connection failed: " . $e->getMessage());
             }
         }
     }

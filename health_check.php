@@ -37,14 +37,14 @@ Api::init($logger);
 /* Get our last edit time */
 $usercontribs = Api::$a->usercontribs(Config::$user, 1);
 if (count($usercontribs) != 1) {
-    $logger->addError('Failed to find usercontribs for ' . $Config::$user);
+    $logger->error('Failed to find usercontribs for ' . $Config::$user);
     exit(1);
 }
 $last_contrib_timestamp = $usercontribs[0]['timestamp'];
 
  /* If we edited in the last 1 hour, then all good */
 if (strtotime($last_contrib_timestamp) > (time() - 3600)) {
-    $logger->addInfo('Last contribution was within last 15min (' . $last_contrib_timestamp . ')');
+    $logger->info('Last contribution was within last 15min (' . $last_contrib_timestamp . ')');
     exit(0);
 }
 
@@ -53,10 +53,10 @@ if (strtotime($last_contrib_timestamp) > (time() - 3600)) {
 
  /* If we have been running for less than 30min, then all good (back off) */
 if ($current_uptime > (time() - 1800)) {
-    $logger->addInfo('Uptime less than 30min (' . $current_uptime . ')');
+    $logger->info('Uptime less than 30min (' . $current_uptime . ')');
     exit(0);
 }
 
  /* Otherwise, we need to die */
- $logger->addError('Are you death or paradise? ' . $last_contrib_timestamp . ' / ' . $current_uptime);
+ $logger->error('Are you death or paradise? ' . $last_contrib_timestamp . ' / ' . $current_uptime);
  exit(1);

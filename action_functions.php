@@ -30,11 +30,11 @@ class Action
         if (!Config::$dry) {
             if ($warning >= 4) {
                 /* Report them if they have been warned 4 times. */
-                $logger->addInfo("Reporting " . $change['user'] . " (" . $warning . ") to AIV");
+                $logger->info("Reporting " . $change['user'] . " (" . $warning . ") to AIV");
                 self::aiv($change, $report);
             } else {
                 /* Warn them if they haven't been warned 4 times. */
-                $logger->addInfo("Warning " . $change['user'] . " (" . $warning . ")");
+                $logger->info("Warning " . $change['user'] . " (" . $warning . ")");
                 self::warn($change, $report, $tpcontent, $warning);
             }
         }
@@ -79,7 +79,7 @@ class Action
         global $logger;
         $aivdata = Api::$q->getpage('Wikipedia:Administrator_intervention_against_vandalism/TB2');
         if (!preg_match('/' . preg_quote($change['user'], '/') . '/i', $aivdata)) {
-            $logger->addInfo(
+            $logger->info(
                 '!admin Reporting [[User:' . $change['user'] .
                 ']] to [[WP:AIV]]. Contributions: [[Special:Contributions/' . $change['user'] .
                 ']] Block: [[Special:Blockip/' . $change['user'] . ']]'
@@ -101,7 +101,7 @@ class Action
     private static function warn($change, $report, $content, $warning)
     {
         global $logger;
-        $logger->addInfo('Warning ' . $change['user']);
+        $logger->info('Warning ' . $change['user']);
         $ret = Api::$a->edit(
             'User talk:' . $change['user'],
             $content . "\n\n"
@@ -117,7 +117,7 @@ class Action
             false,
             false
         ); /* Warn the user */
-        $logger->addDebug($ret);
+        $logger->debug($ret);
     }
 
     public static function doRevert($change)
@@ -190,7 +190,7 @@ class Action
             return array(true, 'Angry-reverting on TFA');
         }
         if (preg_match('/\* \[\[(' . preg_quote($change['title'], '/') . ')\]\] \- .*/i', Globals::$aoptin)) {
-            $logger->addInfo('Angry-reverting [[' . $change['title'] . ']].');
+            $logger->info('Angry-reverting [[' . $change['title'] . ']].');
 
             return array(true, 'Angry-reverting on angry-optin');
         }

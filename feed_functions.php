@@ -104,10 +104,10 @@ class Feed
                                 Globals::$optin
                             )
                         ) {
-                            $logger->addInfo('Skipping due to namespace: ' . $message);
+                            $logger->info('Skipping due to namespace: ' . $message);
                             return;
                         }
-                        $logger->addInfo('Processing: ' . $message);
+                        $logger->info('Processing: ' . $message);
                         Process::processEdit($data);
                     }
                     break;
@@ -115,7 +115,7 @@ class Feed
         }
 
         if (!Feed::$wlTimer || Feed::$wlTimer + 3600 <= time()) {
-            $logger->addInfo('Reloading huggle whitelist on timer');
+            $logger->info('Reloading huggle whitelist on timer');
             Feed::$wlTimer = time();
             loadHuggleWhitelist();
         }
@@ -132,7 +132,7 @@ class Feed
             return;
         }
 
-        $logger->addInfo($change['rawline'] . " # " . $score .
+        $logger->info($change['rawline'] . " # " . $score .
                          ' # ' . $why . ' # ' . ($reverted ? 'Reverted' : 'Not reverted'));
         IRC::spam($change['rawline'] . "\003 # " . $score . ' # ' . $why .
                   ' # ' . ($reverted ? 'Reverted' : 'Not reverted'));

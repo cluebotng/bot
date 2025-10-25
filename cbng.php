@@ -201,7 +201,7 @@ function parseFeedData($feedData, $useOld = false)
         and isset($cb['user_warns'])
         and isset($cb['user_reg_time']))
     ) {
-        $logger->addError("Failed to get user info: " . var_export($feedData, true) . ", " . var_export($cb, true));
+        $logger->error("Failed to get user info: " . var_export($feedData, true) . ", " . var_export($cb, true));
         return false;
     }
     if (
@@ -210,7 +210,7 @@ function parseFeedData($feedData, $useOld = false)
         and isset($cb['common']['num_recent_edits'])
         and isset($cb['common']['num_recent_reversions']))
     ) {
-        $logger->addError("Failed to get common info: " . var_export($feedData, true) . ", " . var_export($cb, true));
+        $logger->error("Failed to get common info: " . var_export($feedData, true) . ", " . var_export($cb, true));
         return false;
     }
     if (
@@ -220,7 +220,7 @@ function parseFeedData($feedData, $useOld = false)
         and isset($api['revisions'][1]['timestamp'])
         and isset($api['revisions'][1]['*']))
     ) {
-        $logger->addError("Failed to get api info: " . var_export($feedData, true) . ", " . var_export($api, true));
+        $logger->error("Failed to get api info: " . var_export($feedData, true) . ", " . var_export($api, true));
         return false;
     }
     $data = array(
