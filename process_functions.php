@@ -39,32 +39,32 @@ class Process
         }
         if ((time() - Globals::$atime) >= 600) {
             if (!Api::$a->loggedin()) {
-                $logger->addWarning('Lost authentication');
+                $logger->warning('Lost authentication');
                 if (!Api::$a->login(Config::$user, Config::$pass)) {
-                    $logger->addError('Failed to re-authenticate');
+                    $logger->error('Failed to re-authenticate');
                     die(); // Before we fork, this is the parent
                 }
             }
             Globals::$atime = time();
         }
         if (Action::isWhitelisted($change['user'])) {
-            $logger->addInfo("User " . $change['user'] . " is whitelisted");
+            $logger->info("User " . $change['user'] . " is whitelisted");
             Feed::bail($change, 'Whitelisted', null);
             return;
         }
         if (Config::$fork) {
             $pid = pcntl_fork();
             if ($pid == -1) {
-                $logger->addError("Failed to fork");
+                $logger->error("Failed to fork");
                 die();
             }
             if ($pid != 0) {
                 // Parent
-                $logger->addDebug("Created fork with " . $pid);
+                $logger->debug("Created fork with " . $pid);
                 return;
             }
             // Child
-            $logger->addDebug("Fork started");
+            $logger->debug("Fork started");
         }
         $change = parseFeedData($change);
         $change['justtitle'] = $change['title'];
@@ -73,7 +73,7 @@ class Process
         }
         self::processEditThread($change);
         if (Config::$fork) {
-            $logger->addDebug("Fork finished");
+            $logger->debug("Fork finished");
             die();
         }
     }
@@ -120,7 +120,7 @@ class Process
         list($shouldRevert, $revertReason) = Action::shouldRevert($change);
         $change['revert_reason'] = $revertReason;
         if ($shouldRevert) {
-            $logger->addInfo("Reverting");
+            $logger->info("Reverting");
             $rbret = Action::doRevert($change);
             if ($rbret !== false) {
                 $change['edit_status'] = 'reverted';
