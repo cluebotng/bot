@@ -33,21 +33,7 @@ $logger->pushProcessor(function ($record) {
     return $record;
 });
 
-// Log to disk unless we are in a build pack
-if (!getenv('NO_HOME')) {
-    $logger->pushHandler(
-        new \Monolog\Handler\RotatingFileHandler(
-            getenv('HOME') . '/logs/cluebotng.log',
-            2,
-            \Monolog\Logger::INFO,
-            true,
-            0600,
-            false
-        )
-    );
-} else {
-    $logger->pushHandler(new \Monolog\Handler\StreamHandler('php://stdout', \Monolog\Logger::INFO));
-}
+$logger->pushHandler(new \Monolog\Handler\StreamHandler('php://stdout', \Monolog\Logger::INFO));
 
 require_once 'cluebot-ng.config.php';
 require_once 'action_functions.php';
