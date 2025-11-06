@@ -153,9 +153,8 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             '" AND `page_title` = "' .
             mysqli_real_escape_string($mw_mysql, $title) .
             '" AND `rev_timestamp` > "' .
-            mysqli_real_escape_string($mw_mysql, $timestamp) . '"'
+            mysqli_real_escape_string($mw_mysql, gmdate('YmdHis', $timestamp)) . '"'
         );
-
         if ($res === false) {
             $logger->warning("page recent edits query returned no data for " . $title .
                                 " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
@@ -185,7 +184,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             "' AND `page_title` = '" .
             mysqli_real_escape_string($mw_mysql, $title) .
             "' AND `rev_timestamp` > '" .
-            mysqli_real_escape_string($mw_mysql, $timestamp) .
+            mysqli_real_escape_string($mw_mysql, gmdate('YmdHis', $timestamp)) .
             "' AND `comment_text` LIKE 'Revert%'"
         );
 
