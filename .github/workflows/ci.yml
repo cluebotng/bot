@@ -46,3 +46,15 @@ jobs:
         run: |
           composer exec phpcs -- --standard=PSR12 --ignore=vendor/ .
         if: matrix.target == 'phpcs'
+
+  build-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build container
+        uses: infrabits/ci-pack@main
+        with:
+          image: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          builder: tools-harbor.wmcloud.org/toolforge/heroku-builder:24_0.20.7
+          buildpack: heroku/php
