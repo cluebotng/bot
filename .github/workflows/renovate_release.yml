@@ -1,0 +1,85 @@
+name: Renovate Release
+on: { push: { branches: [ 'main' ] } }
+permissions:
+  deployments: write
+  contents: write
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find the latest release tag
+        uses: actions/github-script@v8
+        id: find-tag
+        with:
+          result-encoding: string
+          script: |
+            const release = await github.rest.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            return release.data.tag_name;
+
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Check changes since last release
+        id: check-changes
+        run: |
+          latest_tag="refs/tags/${{ steps.find-tag.outputs.result }}"
+          commits=$(git log --format="%an <%ae>" "${latest_tag}..HEAD")
+          
+          renovate_author='renovate\[bot\] <[0-9]+\+renovate\[bot\]@users.noreply.github.com>'
+          number_of_renovate_commits=$(grep -E "^${renovate_author}$" <<< "${commits}" | wc -l)
+          number_of_other_commits=$(grep -Ev "^${renovate_author}$" <<< "${commits}" | wc -l)
+          
+          echo "[${latest_tag}] Found ${number_of_renovate_commits} renovate & ${number_of_other_commits} other commits"
+          if [ "${number_of_renovate_commits}" -gt 0 ] && [ "${number_of_other_commits}" -eq 0 ];
+          then
+            echo "have_only_renovate_commits=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Calculate next release tag
+        id: get-tag
+        run: |
+          # Assume some semantic ish version, increase the minor version
+          latest_tag="${{ steps.find-tag.outputs.result }}"
+          
+          # If the version is `v<timestamp>` then use the current timestamp
+          if [ ! -z "$(grep -E '^v[0-9]+$' <<< "${latest_tag}")" ];
+          then
+            echo "Latest tag looks like a timestamp, using current timestamp"
+            echo "tag_name=v$(date +%s)" >> "$GITHUB_OUTPUT"
+            exit
+          fi
+
+          # If the version is semantic, then increase the patch version
+          if [ ! -z "$(grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' <<< "${latest_tag}")" ];
+          then
+            echo "Latest tag looks like a semantic version, increasing patch"
+            echo "tag_name=$(awk -F '.' '{print $1"."$2"."($3 + 1)}' <<< "${latest_tag}")" >> "$GITHUB_OUTPUT"
+            exit
+          fi
+
+          echo "Could not figure out tag format: $latest_tag"
+          exit 2
+        if: steps.check-changes.outputs.have_only_renovate_commits == 1
+
+      - name: Create a new release
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const tag_name = '${{ steps.get-tag.outputs.tag_name }}';
+
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: `Release ${tag_name}`,
+              tag_name: tag_name,
+              draft: false,
+              prerelease: false,
+              generate_release_notes: true,
+            });
+            console.log(`Created release for tag: ${release.data.name}`);
+        if: steps.check-changes.outputs.have_only_renovate_commits == 1
