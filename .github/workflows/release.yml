@@ -1,22 +1,40 @@
 name: Release
-on:
-  push: {tags: ['*']}
+on: { push: { tags: [ 'v*' ] } }
 permissions:
   deployments: write
   contents: write
 jobs:
-  release:
+  create-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v5
-
-      - name: Package the source
-        run: |
-          tar -cvf bot.tar.gz *
-
-      - name: Crease a release
-        uses: ncipollo/release-action@v1
+      - name: Create GitHub release
+        uses: actions/github-script@v8
         with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          artifacts: "bot.tar.gz"
+          script: |
+            const tag_name = context.ref.replace(/^refs\/tags\//, '');
+
+            try {
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: tag_name
+              });
+
+              console.log(`Release already exists for tag: ${release.data.name}`);
+              return
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: `Release ${tag_name}`,
+              tag_name: tag_name,
+              draft: false,
+              prerelease: false,
+              generate_release_notes: true,
+            });
+            console.log(`Created release for tag: ${release.data.name}`);
