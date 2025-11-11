@@ -1,5 +1,5 @@
 name: Deploy
-on: { push: { tags: [ 'v*' ] } }
+on: { release: { types: [ released ] } }
 jobs:
   update-components:
     runs-on: ubuntu-latest
