@@ -7,34 +7,8 @@ jobs:
   create-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Create GitHub release
-        uses: actions/github-script@v8
+      - uses: cluebotng/ci-create-release@main
         with:
-          script: |
-            const tag_name = context.ref.replace(/^refs\/tags\//, '');
-
-            try {
-              const release = await github.rest.repos.getReleaseByTag({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag: tag_name
-              });
-
-              console.log(`Release already exists for tag: ${release.data.name}`);
-              return
-            } catch (error) {
-              if (error.status !== 404) {
-                throw error;
-              }
-            }
-
-            const release = await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: `Release ${tag_name}`,
-              tag_name: tag_name,
-              draft: false,
-              prerelease: false,
-              generate_release_notes: true,
-            });
-            console.log(`Created release for tag: ${release.data.name}`);
+          repo_name: '${{ github.repository }}'
+          tag_name: '${{ github.ref }}'
+          gh_app_key: '${{ secrets.CI_RELEASE_MAKER_APP_KEY }}'
