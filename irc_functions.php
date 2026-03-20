@@ -116,7 +116,9 @@ class IRC
             curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
             curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
             curl_exec($ch);
-            curl_close($ch);
+            if (PHP_MAJOR_VERSION < 8) {
+                curl_close($ch);
+            }
         } else {
             $logger->info('Saying to ' . $channel . ': ' . $message);
             $udp = fsockopen('udp://' . Config::$relay_host, Config::$relay_port);
