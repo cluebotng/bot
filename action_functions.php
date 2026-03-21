@@ -85,6 +85,40 @@ class Action
         return (int)$warning;
     }
 
+    private static function getWarningText($change, $report, $warning)
+    {
+        $template = '{{subst:User:' . Config::$user . '/Warnings/Warning'
+        . '|1=' . $warning
+        . '|2=' . str_replace('File:', ':File:', $change['namespaced_title'])
+        . '|3=' . $report
+        . ' <!{{subst:ns:0}}-- MySQL ID: ' . $change['mysqlid'] . ' --{{subst:ns:0}}>'
+        . '|4=' . $change['mysqlid']
+        . '}}';
+
+        $ret = Api::$h->unserialize(Api::$h->get(
+            Api::$a->apiurl . '?action=parse&text=' . urlencode($template) .
+            '&title=' . urlencode('User talk:' . $change['user']) .
+            '&pst=true&onlypst=true&prop=wikitext&format=json'
+        ));
+        if (isset($ret['parse']['text']['*']) && is_string($ret['parse']['text']['*'])) {
+            $template = $ret['parse']['text']['*'];
+        }
+
+        [$sectionHeader, $sectionText] = self::splitSectionHeader($template);
+        return [$sectionHeader, $sectionText . ' ~~~~'];
+    }
+
+    private static function splitSectionHeader(string $wikitext): array
+    {
+        // Only the level 1 warning contains a header
+        if (preg_match('/^\s*(==\s*\w+\s+\d{4}\s*==)[ \t]*\n(.*)$/s', $wikitext, $match)) {
+            return [$match[1], $match[2]];
+        }
+
+        // No header, or the parse failed and we have the raw substitution
+        return [null, $wikitext];
+    }
+
     private static function aiv($change, $report)
     {
         $aivdata = Api::$q->getpage('Wikipedia:Administrator_intervention_against_vandalism/TB2');
@@ -107,20 +141,39 @@ class Action
         }
     }
 
+    private static function normaliseSectionHeader(string $header): ?string
+    {
+        if (!preg_match('/^(=+)\s*(.*?)\s*(=+)\s*$/', $header, $match)) {
+            return null;
+        }
+        $level = min(strlen($match[1]), strlen($match[3]));
+        return $level . ':' . preg_replace('/\s+/', ' ', $match[2]);
+    }
+
+    private static function mangleSectionIntoPage(?string $content, ?string $sectionHeader, string $sectionText): string
+    {
+        $content = rtrim($content ?? '');
+
+        // If the last section on the page matches our section, re-use it
+        if (
+            $sectionHeader !== null &&
+            preg_match_all('/^=.*=[ \t]*$/m', $content, $headers) &&
+            self::normaliseSectionHeader(end($headers[0])) === self::normaliseSectionHeader($sectionHeader)
+        ) {
+            $sectionHeader = null;
+        }
+
+        $section = ($sectionHeader !== null ? $sectionHeader . "\n" : '') . $sectionText . "\n";
+        return $content === '' ? $section : $content . "\n\n" . $section;
+    }
+
     private static function warn($change, $report, $content, $warning)
     {
+        [$sectionHeader, $sectionText] = self::getWarningText($change, $report, $warning);
         if (
             Api::$a->edit(
                 'User talk:' . $change['user'],
-                $content . "\n\n"
-                . '{{subst:User:' . Config::$user . '/Warnings/Warning'
-                . '|1=' . $warning
-                . '|2=' . str_replace('File:', ':File:', $change['namespaced_title'])
-                . '|3=' . $report
-                . ' <!{{subst:ns:0}}-- MySQL ID: ' . $change['mysqlid'] . ' --{{subst:ns:0}}>'
-                . '|4=' . $change['mysqlid']
-                . '}} ~~~~'
-                . "\n",
+                self::mangleSectionIntoPage($content, $sectionHeader, $sectionText),
                 'Warning [[Special:Contributions/' . $change['user'] . '|' . $change['user'] . ']] - #' . $warning,
                 false,
                 false

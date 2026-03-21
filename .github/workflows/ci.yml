@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [phplint, phpcs]
+        target: [phplint, phpcs, phpunit]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -44,6 +44,11 @@ jobs:
         run: |
           composer exec phpcs -- --standard=PSR12 --ignore=vendor/ .
         if: matrix.target == 'phpcs'
+
+      - name: PHP Unit Test
+        run: |
+          composer exec phpunit -- tests/
+        if: matrix.target == 'phpunit'
 
   build-container:
     runs-on: ubuntu-latest
