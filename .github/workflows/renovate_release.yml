@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Find the latest release tag
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         id: find-tag
         with:
           result-encoding: string
@@ -67,7 +67,7 @@ jobs:
         if: steps.check-changes.outputs.have_only_renovate_commits == 1
 
       - name: Create a new release
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const tag_name = '${{ steps.get-tag.outputs.tag_name }}';
