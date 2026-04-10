@@ -1,5 +1,13 @@
-name: Deploy
-on: { release: { types: [ released ] } }
+name: Deploy Tagged Release
+on:
+  release:
+    types:
+      - released
+  workflow_call:
+    inputs:
+      ref:
+        required: false
+        type: string
 jobs:
   update-components:
     runs-on: ubuntu-latest
@@ -8,5 +16,5 @@ jobs:
         with:
           tool: '*'
           repository: 'https://github.com/cluebotng/bot.git'
-          ref: '${{ github.ref }}'
+          ref: '${{ inputs.ref || github.ref }}'
           gh_app_key: '${{ secrets.CI_COMPONENT_CONFIGS_APP_KEY }}'
