@@ -1,1 +1,1 @@
-cbng: ./scripts/run-cbng.sh
+abc: ./scripts/run-cbng.sh
