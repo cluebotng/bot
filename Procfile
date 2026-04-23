@@ -1,1 +1,1 @@
-web: ./scripts/entrypoint.sh
+run-web: ./scripts/entrypoint.sh
