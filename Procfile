@@ -1,1 +1,1 @@
-web: ./scripts/entrypoint.sh
+cbng: ./scripts/run_cbng.sh
