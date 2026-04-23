@@ -1,1 +1,1 @@
-web: ./scripts/run-cbng.sh
+bot: ./scripts/run-cbng.sh
