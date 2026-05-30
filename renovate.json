@@ -4,5 +4,22 @@
     "config:recommended"
   ],
   "automerge": true,
-  "automergeStrategy": "rebase"
+  "automergeStrategy": "rebase",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["(^|/)composer\\.json$"],
+      "matchStrings": ["\"cluebotng/wikipedia\":\\s*\"(?<currentValue>[^\"]+)\""],
+      "datasourceTemplate": "github-releases",
+      "packageNameTemplate": "cluebotng/wikipedia",
+      "depNameTemplate": "cluebotng/wikipedia"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["composer"],
+      "matchPackageNames": ["cluebotng/wikipedia"],
+      "enabled": false
+    }
+  ]
 }
