@@ -1,12 +1,10 @@
 name: CI
-on: {pull_request: {}}
+on: { pull_request: { } }
 concurrency:
   group: ${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 permissions:
-  contents: write
-  packages: write
-  issues: write
+  contents: read
 jobs:
   jobs:
     strategy:
@@ -49,12 +47,18 @@ jobs:
 
   build-container:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v6
 
       - name: Build container
         uses: infrabits/ci-pack@main
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           image: ghcr.io/${{ github.repository }}:${{ github.sha }}
           use_builder: latest
           buildpack: heroku/php
+          publish_image: false
+          runtime_release: ${{ github.sha }}

@@ -1,17 +1,16 @@
 name: Create Release For Tag
 on: { push: { tags: [ 'v*' ] } }
-permissions:
-  deployments: write
-  contents: write
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: cluebotng/ci-create-release@main
+      - name: Create GitHub release
+        uses: infrabits/ci-create-missing-release@main
         with:
-          repo_name: '${{ github.repository }}'
-          tag_name: '${{ github.ref }}'
-          gh_app_key: '${{ secrets.CI_RELEASE_MAKER_APP_KEY }}'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: '${{ github.ref }}'
 
   deploy:
     needs: [create-release]
