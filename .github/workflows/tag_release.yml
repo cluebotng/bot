@@ -9,7 +9,7 @@ jobs:
       - name: Create GitHub release
         uses: infrabits/ci-create-missing-release@main
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           tag: '${{ github.ref }}'
 
   deploy:
