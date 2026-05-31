@@ -12,7 +12,7 @@ jobs:
   update-components:
     runs-on: ubuntu-latest
     steps:
-      - uses: cluebotng/ci-update-component-ref@main
+      - uses: cluebotng/ci-update-component-ref@c014d6aded7cb5681ba780f047d42bd418ac8130 # main
         with:
           tool: '*'
           repository: 'https://github.com/cluebotng/bot.git'
