@@ -45,6 +45,7 @@ class Action
         $warning = 0;
         $content = Api::$q->getpage('User talk:' . $user);
         if (
+            $content != null &&
             preg_match_all(
                 '/<!-- Template:(uw-[a-z]*(\d)(im)?|Blatantvandal \(serious warning\)) -->.*' .
                 '(\d{2}):(\d{2}), (\d+) ([a-zA-Z]+) (\d{4}) \(UTC\)/iU',
@@ -74,6 +75,34 @@ class Action
         return (int)$warning;
     }
 
+    private static function getWarningText($change, $report, $warning)
+    {
+        $template = '{{subst:User:' . Config::$user . '/Warnings/Warning'
+        . '|1=' . $warning
+        . '|2=' . str_replace('File:', ':File:', $change['title'])
+        . '|3=' . $report
+        . ' <!{{subst:ns:0}}-- MySQL ID: ' . $change['mysqlid'] . ' --{{subst:ns:0}}>'
+        . '|4=' . $change['mysqlid']
+        . '}} ~~~~';
+
+        $x = Api::$h->get(
+            Api::$a->apiurl . '?action=parse&text=' . urlencode($template) . '&title=' . urlencode('User:' . $change['user']) . '&pst=true&onlypst=true&prop=wikitext&format=json'
+        );
+        $ret = Api::$h->unserialize($x);
+
+        if (is_array($ret) && array_key_exists('parse', $ret) && array_key_exists('text', $ret['parse']) && array_key_exists('*', $ret['parse']['text'])) {
+            $template = $ret['parse']['text']['*'];
+        }
+
+        // Split out the header if there is one (parse was successful)
+        if (preg_match('/^\s*(==\s*\w+\s+\d{4}\s*==)\n(.*)$/s', $template, $match)) {
+            return [$match[1], $match[2]];
+        }
+
+        // Fallback to raw substitution
+        return [null, $template];
+    }
+
     private static function aiv($change, $report)
     {
         global $logger;
@@ -98,21 +127,58 @@ class Action
         }
     }
 
-    private static function warn($change, $report, $content, $warning)
+    private static function mangleSectionIntoPage(?string $content, ?string $sectionHeader, string $sectionText): string
+    {
+        // No existing content
+        if ($content === null) {
+            return $sectionHeader !== null
+                ? "{$sectionHeader}\n{$sectionText}\n"
+                : "{$sectionText}\n";
+        }
+
+        // No header — append to end (e.g. substituted template)
+        if ($sectionHeader === null) {
+            return "{$content}\n\n{$sectionText}\n";
+        }
+
+        $sectionPosition = strpos($content, "{$sectionHeader}\n");
+
+        // Header not found — append new section
+        if ($sectionPosition === false) {
+            return "{$content}\n\n{$sectionHeader}\n{$sectionText}\n";
+        }
+
+        // Determine header level and find section boundaries
+        $level  = strspn($sectionHeader, '=');
+        $before = substr($content, 0, $sectionPosition);
+        $after  = substr($content, $sectionPosition);
+
+        // Find the next header of equal or higher level
+        $end = preg_match('/\n(?=={1,' . $level . '}(?!=))/m', $after, $stop, PREG_OFFSET_CAPTURE)
+            ? $stop[0][1]
+            : strlen($after);
+
+        $existingSection = substr($after, 0, $end);
+        $afterSection    = substr($after, $end);
+
+        return $before
+            . trim($existingSection) . "\n\n"
+            . trim($sectionText)
+            . ($afterSection ? "\n" . $afterSection : '')
+            . "\n";
+    }
+
+    public static function warn($change, $report, $content, $warning)
     {
         global $logger;
         $logger->info('Warning ' . $change['user']);
+
+        [$sectionHeader, $sectionText] = self::getWarningText($change, $report, $warning);
+        $newContent = self::mangleSectionIntoPage($content, $sectionHeader, $sectionText);
+
         $ret = Api::$a->edit(
             'User talk:' . $change['user'],
-            $content . "\n\n"
-            . '{{subst:User:' . Config::$user . '/Warnings/Warning'
-            . '|1=' . $warning
-            . '|2=' . str_replace('File:', ':File:', $change['title'])
-            . '|3=' . $report
-            . ' <!{{subst:ns:0}}-- MySQL ID: ' . $change['mysqlid'] . ' --{{subst:ns:0}}>'
-            . '|4=' . $change['mysqlid']
-            . '}} ~~~~'
-            . "\n",
+            $newContent,
             'Warning [[Special:Contributions/' . $change['user'] . '|' . $change['user'] . ']] - #' . $warning,
             false,
             false
