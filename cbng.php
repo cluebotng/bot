@@ -104,7 +104,7 @@ function getUrlsInParallel($urls)
     }
     $ret = array();
     foreach ($chs as $ch) {
-        $ret[] = unserialize(curl_multi_getcontent($ch));
+        $ret[] = json_decode(curl_multi_getcontent($ch), true);
         curl_multi_remove_handle($mh, $ch);
     }
     curl_multi_close($mh);
@@ -149,7 +149,7 @@ function parseFeedData($feedData, $useOld = false)
     $urls = array(
         'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1&prop=revisions&titles=' .
         urlencode(($feedData['namespaceid'] == 0 ? '' : $feedData['namespace'] . ':') . $feedData['title']) .
-        '&rvstartid=' . $feedData['revid'] . '&rvlimit=2&rvprop=timestamp|user|content&format=php',
+        '&rvstartid=' . $feedData['revid'] . '&rvlimit=2&rvprop=timestamp|user|content&format=json',
     );
     list($api) = getUrlsInParallel($urls);
     $api = current($api['query']['pages']);
