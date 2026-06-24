@@ -21,7 +21,7 @@ namespace CluebotNG;
  * along with ClueBot NG.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class IRC
+class Relay
 {
     public static function spam($change, $why = '', $score = 'N/A', $reverted = false)
     {
