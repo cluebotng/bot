@@ -227,12 +227,6 @@ class Action
 
     public static function isWhitelisted($user)
     {
-        foreach (Globals::$wl as $wl) {
-            if (preg_match('/^' . preg_quote($user, '/') . '$/', $wl)) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($user, Globals::$wl, true);
     }
 }

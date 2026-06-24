@@ -47,10 +47,6 @@ class Process
             }
             Globals::$atime = time();
         }
-        if (Action::isWhitelisted($change['user'])) {
-            $logger->debug('Skipping change as user is whitelisted: ' . $change['revid']);
-            return;
-        }
         if (Config::$fork) {
             $pid = pcntl_fork();
             if ($pid == -1) {
@@ -82,7 +78,7 @@ class Process
         $change['edit_score'] = 'N/A';
         $s = null;
         if (!array_key_exists('all', $change)) {
-            $logger->debug('Skipping change as edit data is missing: ' . print_r($change, true));
+            $logger->debug('Skipping change as edit data is missing', ['revision_id' => $change['revid']]);
             return;
         }
 
@@ -90,6 +86,12 @@ class Process
             if ($s > 0.1) {
                 Relay::publish($change, $s, false, 'Below threshold');
             }
+            return;
+        }
+
+        if (Action::isWhitelisted($change['user'])) {
+            $logger->info('Skipping: User whitelisted', ['revision_id' => $change['revid']]);
+            Relay::publish($change, $score, false, 'User whitelisted');
             return;
         }
 
