@@ -35,6 +35,7 @@ class Globals
     public static $edit;
     public static $stalk;
     public static $atime;
+    public static $huggle_wl_reload_time;
     public static $namespaces = array(
         'special' => -1,
         'media' => -2,

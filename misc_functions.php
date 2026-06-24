@@ -34,6 +34,16 @@ function myfnmatch($pattern, $string)
     }
 }
 
+function refreshDataTick()
+{
+    global $logger;
+    if (!Globals::$huggle_wl_reload_time || Globals::$huggle_wl_reload_time + 3600 <= time()) {
+        $logger->info('Reloading huggle whitelist on timer');
+        Globals::$huggle_wl_reload_time = time();
+        loadHuggleWhitelist();
+    }
+}
+
 function loadHuggleWhitelist()
 {
     global $logger;
