@@ -27,12 +27,6 @@ include 'vendor/autoload.php';
 // Logger
 $logger = new \Monolog\Logger('cluebotng');
 
-// Add the current PID into the log output
-$logger->pushProcessor(function ($record) {
-    $record['extra']['current_pid'] = getmypid();
-    return $record;
-});
-
 $logger->pushHandler(new \Monolog\Handler\StreamHandler('php://stdout', \Monolog\Logger::INFO));
 
 require_once 'cluebot-ng.config.php';
