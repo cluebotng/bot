@@ -101,10 +101,11 @@ class IrcFeed
                                 Globals::$optin
                             )
                         ) {
-                            $logger->info('Skipping due to namespace: ' . $message);
+                            $logger->debug('Skipping due to namespace: ' .
+                                           $data['namespace'] . $data['title'] . ' (' . $data['url'] . ')');
                             return;
                         }
-                        $logger->info('Processing: ' . $message);
+                        $logger->info('Processing: ' . $data['namespace'] . $data['title'] . ' (' . $data['url'] . ')');
                         Process::processEdit($data);
                     }
                     break;
