@@ -77,35 +77,6 @@ class IrcFeed
                         if ($data === null) {
                             return;
                         }
-                        if (in_array('N', $data['flags'])) {
-                            $logger->debug('Skipping new article: ' . $change['revid']);
-                            return;
-                        }
-                        switch ($data['namespace'] . $data['title']) {
-                            case 'User:' . Config::$user . '/Run':
-                                Globals::$run = Api::$q->getpage('User:' . Config::$user . '/Run');
-                                break;
-                            case 'User:' . Config::$user . '/Optin':
-                                Globals::$optin = Api::$q->getpage('User:' . Config::$user . '/Optin');
-                                break;
-                            case 'User:' . Config::$user . '/AngryOptin':
-                                Globals::$aoptin = Api::$q->getpage('User:' . Config::$user . '/AngryOptin');
-                                break;
-                        }
-
-                        if (
-                            $data['namespace'] != 'Main:' and
-                            !preg_match(
-                                '/\* \[\[(' . preg_quote($data['namespace'] . $data['title'], '/') .
-                                ')\]\] \- .*/i',
-                                Globals::$optin
-                            )
-                        ) {
-                            $logger->debug('Skipping due to namespace: ' .
-                                           $data['namespace'] . $data['title'] . ' (' . $data['url'] . ')');
-                            return;
-                        }
-                        $logger->info('Processing: ' . $data['namespace'] . $data['title'] . ' (' . $data['url'] . ')');
                         Process::processEdit($data);
                     }
                     break;

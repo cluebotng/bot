@@ -26,6 +26,37 @@ class Process
     public static function processEdit($change)
     {
         global $logger;
+
+        // Reload config from our 'special' pages
+        switch ($change['namespace'] . $change['title']) {
+            case 'User:' . Config::$user . '/Run':
+                $logger->info('Reloading /Run', ['revision_id' => $change['revid']]);
+                Globals::$run = Api::$q->getpage('User:' . Config::$user . '/Run');
+                break;
+            case 'User:' . Config::$user . '/Optin':
+                $logger->info('Reloading /Optin', ['revision_id' => $change['revid']]);
+                Globals::$optin = Api::$q->getpage('User:' . Config::$user . '/Optin');
+                break;
+            case 'User:' . Config::$user . '/AngryOptin':
+                $logger->info('Reloading /AngryOptin', ['revision_id' => $change['revid']]);
+                Globals::$aoptin = Api::$q->getpage('User:' . Config::$user . '/AngryOptin');
+                break;
+        }
+
+        // Check this is an allowed namespace (same as for IRC)
+        if (
+            $change['namespace'] != 'Main:' and
+            !preg_match(
+                '/\* \[\[(' . preg_quote($change['namespace'] . $change['title'], '/') .
+                ')\]\] \- .*/i',
+                Globals::$optin
+            )
+        ) {
+            $logger->debug('Skipping due to namespace', ['revision_id' => $change['revid']]);
+            return;
+        }
+
+        // Reload TFA if required
         if (
             (time() - Globals::$tfas) >= 1800 and
             preg_match(
@@ -37,6 +68,8 @@ class Process
             Globals::$tfas = time();
             Globals::$tfa = $tfam[1];
         }
+
+        // Re-authenticate if required
         if ((time() - Globals::$atime) >= 600) {
             if (!Api::$a->loggedin()) {
                 $logger->warning('Lost authentication');
@@ -47,6 +80,16 @@ class Process
             }
             Globals::$atime = time();
         }
+
+        // Start actually processing things
+        $logger->info('Processing: ' . $change['namespace'] . $change['title'], ['revision_id' => $change['revid']]);
+
+        // Ignore new articles
+        if (in_array('N', $change['flags'])) {
+            $logger->info('Skipping: New article', ['revision_id' => $change['revid']]);
+            return;
+        }
+
         if (Config::$fork) {
             $pid = pcntl_fork();
             if ($pid == -1) {
