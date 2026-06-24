@@ -27,7 +27,6 @@ class Feed
     public static $port = 6667;
     public static $channel = '#en.wikipedia';
     private static $fd;
-    public static $wlTimer;
 
     public static function connectLoop()
     {
@@ -112,11 +111,7 @@ class Feed
             }
         }
 
-        if (!Feed::$wlTimer || Feed::$wlTimer + 3600 <= time()) {
-            $logger->info('Reloading huggle whitelist on timer');
-            Feed::$wlTimer = time();
-            loadHuggleWhitelist();
-        }
+        refreshDataTick();
     }
 
     private static function parseFeed($message)
