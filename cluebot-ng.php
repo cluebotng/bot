@@ -24,13 +24,21 @@ require_once 'includes.php';
 
 \pcntl_async_signals(true);
 \pcntl_signal(SIGCHLD, function ($signo, $siginfo) {
+    global $logger;
     switch ($signo) {
         case SIGCHLD:
             while (($x = \pcntl_waitpid(0, $status, WNOHANG)) != -1) {
                 if ($x == 0) {
                     break;
                 }
-                $status = \pcntl_wexitstatus($status);
+                if (\pcntl_wifsignaled($status)) {
+                    $logger->error("Child process {$x} killed by signal " . \pcntl_wtermsig($status));
+                } elseif (\pcntl_wifexited($status)) {
+                    $exitCode = \pcntl_wexitstatus($status);
+                    if ($exitCode !== 0) {
+                        $logger->error("Child process {$x} exited with status {$exitCode}");
+                    }
+                }
             }
             break;
     }
