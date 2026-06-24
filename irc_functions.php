@@ -86,10 +86,19 @@ class IRC
         return $return;
     }
 
-    public static function spam($message)
+    public static function spam($change, $why = '', $score = 'N/A', $reverted = false)
     {
+        global $logger;
+
+        $line = '[[' . $change['namespace'] . $change['title'] . ']] '
+              . implode("", $change['flags']) . ' ' . $change['url']
+              . ' * ' . $change['user']
+              . ' * (' . $change['length'] . ') ' . $change['comment'];
+        $info = '# ' . $score . ' # ' . $why . ' # ' . ($reverted ? 'Reverted' : 'Not reverted');
+
+        $logger->info($line . " " . $info);
         if (Config::$relay_enable_spam) {
-            return self::message('#wikipedia-en-cbngfeed', $message);
+            self::message('#wikipedia-en-cbngfeed', $line . "\003 " . $info);
         }
     }
 
