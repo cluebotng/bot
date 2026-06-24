@@ -78,7 +78,7 @@ class Feed
                         if ($data === null) {
                             return;
                         }
-                        if (stripos($data['flags'], 'N') !== false) {
+                        if (in_array('N', $data['flags'])) {
                             IRC::spam($data, 'New article');
                             return;
                         }
@@ -135,7 +135,7 @@ class Feed
                 'namespace' => $m[1] ? $m[1] : 'Main:',
                 'namespaceid' => namespace2id($m[1] ? substr($m[1], 0, -1) : 'Main'),
                 'title' => $m[5],
-                'flags' => $m[6],
+                'flags' => str_split($m[6]),
                 'url' => $m[7],
                 'revid' => $m[8],
                 'old_revid' => $m[9],

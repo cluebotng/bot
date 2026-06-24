@@ -175,7 +175,7 @@ function parseFeedData($feedData, $useOld = false)
             'num_recent_reversions' => $cb['common']['num_recent_reversions'],
         ),
         'current' => array(
-            'minor' => (stripos($feedData['flags'], 'm') === false) ? 'false' : 'true',
+            'minor' => (in_array('m', $feedData['flags'])) ? 'true' : 'false',
             'timestamp' => strtotime($api['revisions'][0]['timestamp']),
             'text' => $api['revisions'][0]['*'],
         ),
