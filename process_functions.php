@@ -48,7 +48,7 @@ class Process
             Globals::$atime = time();
         }
         if (Action::isWhitelisted($change['user'])) {
-            Relay::publish($change, null, false, 'User is whitelisted');
+            $logger->debug('Skipping change as user is whitelisted: ' . $change['revid']);
             return;
         }
         if (Config::$fork) {
@@ -84,12 +84,14 @@ class Process
         $change['edit_score'] = 'N/A';
         $s = null;
         if (!array_key_exists('all', $change)) {
-            Relay::publish($change, null, false, 'Missing edit data');
+            $logger->debug('Skipping change as edit data is missing: ' . print_r($change, true));
             return;
         }
 
         if (!isVandalism($change['all'], $s)) {
-            Relay::publish($change, $s, false, 'Below threshold');
+            if ($s > 0.1) {
+                Relay::publish($change, $s, false, 'Below threshold');
+            }
             return;
         }
 

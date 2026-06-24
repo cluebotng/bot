@@ -78,7 +78,7 @@ class IrcFeed
                             return;
                         }
                         if (in_array('N', $data['flags'])) {
-                            Relay::publish($data, null, false, 'New article');
+                            $logger->debug('Skipping new article: ' . $change['revid']);
                             return;
                         }
                         switch ($data['namespace'] . $data['title']) {
