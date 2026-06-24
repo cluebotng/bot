@@ -23,69 +23,6 @@ namespace CluebotNG;
 
 class IRC
 {
-    public static function split($message)
-    {
-        if (!$message) {
-            return;
-        }
-        $return = array();
-        $i = 0;
-        $quotes = false;
-        if ($message[$i] == ':') {
-            $return['type'] = 'relayed';
-            ++$i;
-        } else {
-            $return['type'] = 'direct';
-        }
-        $return['rawpieces'] = array();
-        $temp = '';
-        for (; $i < strlen($message); ++$i) {
-            if ($quotes and $message[$i] != '"') {
-                $temp .= $message[$i];
-            } else {
-                switch ($message[$i]) {
-                    case ' ':
-                        $return['rawpieces'][] = $temp;
-                        $temp = '';
-                        break;
-                    case '"':
-                        if ($quotes or $temp == '') {
-                            $quotes = !$quotes;
-                            break;
-                        }
-                    // Ignore
-                    case ':':
-                        if ($temp == '') {
-                            ++$i;
-                            $return['rawpieces'][] = substr($message, $i);
-                            $i = strlen($message);
-                            break;
-                        }
-                    // Ignore
-                    default:
-                        $temp .= $message[$i];
-                }
-            }
-        }
-        if ($temp != '') {
-            $return['rawpieces'][] = $temp;
-        }
-        if ($return['type'] == 'relayed') {
-            $return['source'] = $return['rawpieces'][0];
-            $return['command'] = strtolower($return['rawpieces'][1]);
-            $return['target'] = $return['rawpieces'][2];
-            $return['pieces'] = array_slice($return['rawpieces'], 3);
-        } else {
-            $return['source'] = 'Server';
-            $return['command'] = strtolower($return['rawpieces'][0]);
-            $return['target'] = 'You';
-            $return['pieces'] = array_slice($return['rawpieces'], 1);
-        }
-        $return['raw'] = $message;
-
-        return $return;
-    }
-
     public static function spam($change, $why = '', $score = 'N/A', $reverted = false)
     {
         global $logger;
