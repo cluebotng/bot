@@ -21,7 +21,7 @@ namespace CluebotNG;
  * along with ClueBot NG.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class Feed
+class IrcFeed
 {
     public static $host = 'irc.wikimedia.org';
     public static $port = 6667;

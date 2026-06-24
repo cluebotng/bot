@@ -39,5 +39,5 @@ date_default_timezone_set('UTC');
 doInit();
 
 for (;;) {
-    Feed::connectLoop();
+    IrcFeed::connectLoop();
 }
