@@ -48,7 +48,7 @@ class Process
             Globals::$atime = time();
         }
         if (Action::isWhitelisted($change['user'])) {
-            Relay::spam($change, 'Whitelisted', null);
+            Relay::publish($change, null, false, 'User is whitelisted');
             return;
         }
         if (Config::$fork) {
@@ -84,12 +84,12 @@ class Process
         $change['edit_score'] = 'N/A';
         $s = null;
         if (!array_key_exists('all', $change)) {
-            Relay::spam($change, 'Missing edit data', $s);
+            Relay::publish($change, null, false, 'Missing edit data');
             return;
         }
 
         if (!isVandalism($change['all'], $s)) {
-            Relay::spam($change, 'Below threshold', $s);
+            Relay::publish($change, $s, false, 'Below threshold');
             return;
         }
 
@@ -123,27 +123,19 @@ class Process
             $rbret = Action::doRevert($change);
             if ($rbret !== false) {
                 $change['edit_status'] = 'reverted';
-                Relay::revert(
-                    $ircreport . "\x0304Reverted\x0315) (\x0313" . $revertReason .
-                    "\x0315) (\x0302" . (microtime(true) - $change['startTime']) . " \x0315s)"
-                );
+                Relay::publish($change, $s, true, $revertReason);
                 Action::doWarn($change, $report);
                 Db::vandalismReverted($change['mysqlid']);
-                Relay::spam($change, $revertReason, $s, true);
             } else {
                 $change['edit_status'] = 'beaten';
                 $rv2 = Api::$a->revisions($change['title'], 1);
                 if ($change['user'] != $rv2[0]['user']) {
-                    Relay::revert(
-                        $ircreport . "\x0303Not Reverted\x0315) (\x0313Beaten by " .
-                        $rv2[0]['user'] . "\x0315) (\x0302" . (microtime(true) - $change['startTime']) . " \x0315s)"
-                    );
+                    Relay::publish($change, $s, false, 'Beaten by ' . $rv2[0]['user']);
                     Db::vandalismRevertBeaten($change['mysqlid'], $change['title'], $rv2[0]['user'], $change['url']);
-                    Relay::spam($change, 'Beaten by ' . $rv2[0]['user'], $s);
                 }
             }
         } else {
-            Relay::spam($change, $revertReason, $s);
+            Relay::publish($change, $s, false, $revertReason);
         }
     }
 }

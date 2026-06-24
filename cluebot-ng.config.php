@@ -44,9 +44,6 @@ class Config
     public static $core_port = 3565;
     public static $relay_host = 'irc-relay';
     public static $relay_port = 9334;
-    public static $relay_use_http = true;
-    public static $relay_enable_spam = true;
-    public static $relay_enable_revert = true;
     public static $fork = true;
     public static $dry = false;
     public static $cb_redis_host = 'redis';

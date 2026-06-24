@@ -78,7 +78,7 @@ class IrcFeed
                             return;
                         }
                         if (in_array('N', $data['flags'])) {
-                            Relay::spam($data, 'New article');
+                            Relay::publish($data, null, false, 'New article');
                             return;
                         }
                         switch ($data['namespace'] . $data['title']) {
