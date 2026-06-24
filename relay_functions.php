@@ -23,55 +23,38 @@ namespace CluebotNG;
 
 class Relay
 {
-    public static function spam($change, $why = '', $score = 'N/A', $reverted = false)
+    public static function publish($change, $score = null, $reverted = false, $comment = null)
     {
-        global $logger;
-
-        $line = '[[' . $change['namespace'] . $change['title'] . ']] '
-              . implode("", $change['flags']) . ' ' . $change['url']
-              . ' * ' . $change['user']
-              . ' * (' . $change['length'] . ') ' . $change['comment'];
-        $info = '# ' . $score . ' # ' . $why . ' # ' . ($reverted ? 'Reverted' : 'Not reverted');
-
-        $logger->info($line . " " . $info);
-        if (Config::$relay_enable_spam) {
-            self::message('#wikipedia-en-cbngfeed', $line . "\003 " . $info);
-        }
+        self::send(json_encode([
+            'change' => [
+                'namespace' => $change['namespace'],
+                'title' => $change['title'],
+                'revision_id' => $change['revid'],
+                'flags' => $change['flags'],
+                'user' => $change['user'],
+                'length' => $change['length'],
+                'comment' => $change['comment'],
+                'url' => $change['url'],
+            ],
+            'score' => $score,
+            'reverted' => $reverted,
+            'comment' => $comment,
+        ]));
     }
 
-    public static function revert($message)
-    {
-        if (Config::$relay_enable_revert) {
-            return self::message('#wikipedia-en-cbngrevertfeed', $message);
-        }
-    }
-
-    private static function message($channel, $message)
+    private static function send($payload)
     {
         global $logger;
-        if (Config::$relay_use_http) {
-            $url = 'http://' . Config::$relay_host . ':' . Config::$relay_port;
-            $payload = json_encode(["channel" => $channel, "string" => $message]);
-            $logger->info('Sending to ' . $url . ': ' . $payload);
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 1);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-            curl_exec($ch);
-            if (PHP_MAJOR_VERSION < 8) {
-                curl_close($ch);
-            }
-        } else {
-            $logger->info('Saying to ' . $channel . ': ' . $message);
-            $udp = fsockopen('udp://' . Config::$relay_host, Config::$relay_port);
-            if ($udp !== false) {
-                fwrite($udp, $channel . ':' . $message);
-                fclose($udp);
-            }
-        }
+        $url = 'http://' . Config::$relay_host . ':' . Config::$relay_port;
+        $logger->info('Sending to ' . $url . ': ' . $payload);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+        curl_exec($ch);
     }
 }
