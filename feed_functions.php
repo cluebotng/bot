@@ -78,10 +78,8 @@ class Feed
                         if ($data === false) {
                             return;
                         }
-                        $data['line'] = $message;
-                        $data['rawline'] = $rawmessage;
                         if (stripos($data['flags'], 'N') !== false) {
-                            self::bail($data, 'New article');
+                            IRC::spam($data, 'New article');
                             return;
                         }
                         switch ($data['namespace'] . $data['title']) {
@@ -119,22 +117,5 @@ class Feed
             Feed::$wlTimer = time();
             loadHuggleWhitelist();
         }
-    }
-
-    public static function bail($change, $why = '', $score = 'N/A', $reverted = false)
-    {
-        global $logger;
-        $rchange = $change;
-        $rchange['edit_reason'] = $why;
-        $rchange['edit_score'] = $score;
-
-        if (!array_key_exists('rawline', $change)) {
-            return;
-        }
-
-        $logger->info($change['rawline'] . " # " . $score .
-                         ' # ' . $why . ' # ' . ($reverted ? 'Reverted' : 'Not reverted'));
-        IRC::spam($change['rawline'] . "\003 # " . $score . ' # ' . $why .
-                  ' # ' . ($reverted ? 'Reverted' : 'Not reverted'));
     }
 }

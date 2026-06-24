@@ -49,7 +49,7 @@ class Process
         }
         if (Action::isWhitelisted($change['user'])) {
             $logger->info("User " . $change['user'] . " is whitelisted");
-            Feed::bail($change, 'Whitelisted', null);
+            IRC::spam($change, 'Whitelisted', null);
             return;
         }
         if (Config::$fork) {
@@ -85,12 +85,12 @@ class Process
         $change['edit_score'] = 'N/A';
         $s = null;
         if (!array_key_exists('all', $change)) {
-            Feed::bail($change, 'Missing edit data', $s);
+            IRC::spam($change, 'Missing edit data', $s);
             return;
         }
 
         if (!isVandalism($change['all'], $s)) {
-            Feed::bail($change, 'Below threshold', $s);
+            IRC::spam($change, 'Below threshold', $s);
             return;
         }
 
@@ -130,7 +130,7 @@ class Process
                 );
                 Action::doWarn($change, $report);
                 Db::vandalismReverted($change['mysqlid']);
-                Feed::bail($change, $revertReason, $s, true);
+                IRC::spam($change, $revertReason, $s, true);
             } else {
                 $change['edit_status'] = 'beaten';
                 $rv2 = Api::$a->revisions($change['title'], 1);
@@ -140,11 +140,11 @@ class Process
                         $rv2[0]['user'] . "\x0315) (\x0302" . (microtime(true) - $change['startTime']) . " \x0315s)"
                     );
                     Db::vandalismRevertBeaten($change['mysqlid'], $change['title'], $rv2[0]['user'], $change['url']);
-                    Feed::bail($change, 'Beaten by ' . $rv2[0]['user'], $s);
+                    IRC::spam($change, 'Beaten by ' . $rv2[0]['user'], $s);
                 }
             }
         } else {
-            Feed::bail($change, $revertReason, $s);
+            IRC::spam($change, $revertReason, $s);
         }
     }
 }
