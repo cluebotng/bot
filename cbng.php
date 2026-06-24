@@ -31,37 +31,6 @@ function namespace2name($nsid)
     return ucfirst($convertFlipped[$nsid]);
 }
 
-function parseFeed($feed)
-{
-    if (
-        preg_match(
-            '/^\[\[((Talk|User|Wikipedia|File|MediaWiki|Template|Help|Category' .
-            '|Portal|Special|Book|Draft|TimedText|Module|Gadget|Gadget(?: |_)definition|Media)(( |_)talk)?:)?' .
-            '([^\x5d]*)\]\] (\S*) (https?:\/\/en\.wikipedia\.org\/w\/index\.php\?diff=(\d*)&oldid=(\d*).*|' .
-            'https?:\/\/en\.wikipedia\.org\/wiki\/\S+)? \* ([^*]*) \* (\(([^)]*)\))? (.*)$/S',
-            $feed,
-            $m
-        )
-    ) {
-        $change = array(
-            'namespace' => $m[1] ? $m[1] : 'Main:',
-            'namespaceid' => namespace2id($m[1] ? substr($m[1], 0, -1) : 'Main'),
-            'title' => $m[5],
-            'flags' => $m[6],
-            'url' => $m[7],
-            'revid' => $m[8],
-            'old_revid' => $m[9],
-            'user' => $m[10],
-            'length' => $m[12],
-            'comment' => $m[13],
-            'timestamp' => time(),
-        );
-        return $change;
-    }
-
-    return false;
-}
-
 function setupUrlFetch($url)
 {
     $ch = curl_init();
