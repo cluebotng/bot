@@ -37,14 +37,14 @@ Api::init($logger);
 /* Get our last edit time */
 $usercontribs = Api::$a->usercontribs(Config::$user, 1);
 if (count($usercontribs) != 1) {
-    $logger->error('Failed to find usercontribs for ' . $Config::$user);
+    $logger->error('Failed to find contributions for ' . Config::$user);
     exit(1);
 }
 $last_contrib_timestamp = $usercontribs[0]['timestamp'];
 
- /* If we edited in the last 1 hour, then all good */
+ /* If we edited recently, then all good */
 if (strtotime($last_contrib_timestamp) > (time() - 3600)) {
-    $logger->info('Last contribution was within last 15min (' . $last_contrib_timestamp . ')');
+    $logger->info('Last contribution was beyond threshold (' . $last_contrib_timestamp . ')');
     exit(0);
 }
 
