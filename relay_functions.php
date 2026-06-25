@@ -48,13 +48,15 @@ class Relay
         $url = 'http://' . Config::$relay_host . ':' . Config::$relay_port;
         $logger->debug('Sending to ' . $url . ': ' . $payload);
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 1);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_TIMEOUT        => 1,
+            CURLOPT_CONNECTTIMEOUT => 1,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_CUSTOMREQUEST  => 'PUT',
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+        ]);
         curl_exec($ch);
     }
 }
