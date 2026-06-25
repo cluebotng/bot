@@ -60,6 +60,6 @@ class KeyValueStore
         if (Globals::$cb_redis === null) {
             return false;
         }
-        return Globals::$cb_redis->set(self::getKey($page_title, $user), time());
+        return Globals::$cb_redis->set(self::getKey($page_title, $user), time(), (24 * 60 * 60));
     }
 }
