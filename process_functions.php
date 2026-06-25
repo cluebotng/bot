@@ -56,19 +56,6 @@ class Process
             return;
         }
 
-        // Reload TFA if required
-        if (
-            (time() - Globals::$tfas) >= 1800 and
-            preg_match(
-                '/{{TFAFULL\|([^}]+)}}/iU',
-                Api::$q->getpage('Wikipedia:Today\'s featured article/' . date('F j, Y')),
-                $tfam
-            )
-        ) {
-            Globals::$tfas = time();
-            Globals::$tfa = $tfam[1];
-        }
-
         // Re-authenticate if required
         if ((time() - Globals::$atime) >= 600) {
             if (!Api::$a->loggedin()) {
