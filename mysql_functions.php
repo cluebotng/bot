@@ -365,24 +365,18 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         }
     }
     if ($data['common']['page_made_time']) {
-        $data['common']['page_made_time'] = gmmktime(
-            (int)substr($data['common']['page_made_time'], 8, 2),
-            (int)substr($data['common']['page_made_time'], 10, 2),
-            (int)substr($data['common']['page_made_time'], 12, 2),
-            (int)substr($data['common']['page_made_time'], 4, 2),
-            (int)substr($data['common']['page_made_time'], 6, 2),
-            (int)substr($data['common']['page_made_time'], 0, 4)
-        );
+        $data['common']['page_made_time'] = \DateTime::createFromFormat(
+            'YmdHis',
+            $data['common']['page_made_time'],
+            new \DateTimeZone('UTC')
+        )->getTimestamp();
     }
     if ($data['user_reg_time']) {
-        $data['user_reg_time'] = gmmktime(
-            (int)substr($data['user_reg_time'], 8, 2),
-            (int)substr($data['user_reg_time'], 10, 2),
-            (int)substr($data['user_reg_time'], 12, 2),
-            (int)substr($data['user_reg_time'], 4, 2),
-            (int)substr($data['user_reg_time'], 6, 2),
-            (int)substr($data['user_reg_time'], 0, 4)
-        );
+        $data['user_reg_time'] = \DateTime::createFromFormat(
+            'YmdHis',
+            $data['user_reg_time'],
+            new \DateTimeZone('UTC')
+        )->getTimestamp();
     }
 
     mysqli_close($mw_mysql);
