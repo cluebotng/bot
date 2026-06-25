@@ -119,26 +119,25 @@ class Process
         global $logger;
         $change['edit_status'] = 'not_reverted';
         $change['edit_score'] = 'N/A';
-        $s = null;
+        $score = null;
         if (!array_key_exists('all', $change)) {
             $logger->debug('Skipping change as edit data is missing', ['revision_id' => $change['revid']]);
             return;
         }
 
-        if (!isVandalism($change['all'], $s)) {
-            if ($s > 0.1) {
-                Relay::publish($change, $s, false, 'Below threshold');
-            }
+        if (!isVandalism($change['all'], $score)) {
+            $logger->info('Skipping: Below threshold', ['revision_id' => $change['revid'], 'score' => $score]);
+            Relay::publish($change, $score, false, 'Below threshold');
             return;
         }
 
         if (Action::isWhitelisted($change['user'])) {
-            $logger->info('Skipping: User whitelisted', ['revision_id' => $change['revid']]);
+            $logger->info('Skipping: User whitelisted', ['revision_id' => $change['revid'], 'score' => $score]);
             Relay::publish($change, $score, false, 'User whitelisted');
             return;
         }
 
-        $reason = 'ANN scored at ' . $s;
+        $reason = 'ANN scored at ' . $score;
         $heuristic = '';
         $diff = 'https://en.wikipedia.org/w/index.php' .
             '?title=' . urlencode($change['title']) .
@@ -151,7 +150,7 @@ class Process
             . '[[User talk:' . $change['user'] . '|(t)]] '
             . $reason . ' on ' . gmdate('c');
         $ircreport = "\x0315[[\x0307" . $change['title'] . "\x0315]] by \"\x0303" . $change['user'] .
-            "\x0315\" (\x0312 " . $change['url'] . " \x0315) \x0306" . $s . "\x0315 (";
+            "\x0315\" (\x0312 " . $change['url'] . " \x0315) \x0306" . $score . "\x0315 (";
         $change['mysqlid'] = Db::detectedVandalism(
             $change['user'],
             $change['title'],
@@ -164,23 +163,28 @@ class Process
         list($shouldRevert, $revertReason) = Action::shouldRevert($change);
         $change['revert_reason'] = $revertReason;
         if ($shouldRevert) {
-            $logger->info("Reverting");
+            $logger->info('Reverting: ' . $revertReason, ['revision_id' => $change['revid'], 'score' => $score]);
             $rbret = Action::doRevert($change);
             if ($rbret !== false) {
                 $change['edit_status'] = 'reverted';
-                Relay::publish($change, $s, true, $revertReason);
+                Relay::publish($change, $score, true, $revertReason);
                 Action::doWarn($change, $report);
                 Db::vandalismReverted($change['mysqlid']);
             } else {
                 $change['edit_status'] = 'beaten';
                 $rv2 = Api::$a->revisions($change['title'], 1);
                 if ($change['user'] != $rv2[0]['user']) {
-                    Relay::publish($change, $s, false, 'Beaten by ' . $rv2[0]['user']);
+                    $logger->info(
+                        'Revert Beaten By: ' . $rv2[0]['user'],
+                        ['revision_id' => $change['revid'], 'score' => $score]
+                    );
+                    Relay::publish($change, $score, false, 'Beaten by ' . $rv2[0]['user']);
                     Db::vandalismRevertBeaten($change['mysqlid'], $change['title'], $rv2[0]['user'], $change['url']);
                 }
             }
         } else {
-            Relay::publish($change, $s, false, $revertReason);
+            $logger->info('Not Reverting: ' . $revertReason, ['revision_id' => $change['revid'], 'score' => $score]);
+            Relay::publish($change, $score, false, $revertReason);
         }
     }
 }
