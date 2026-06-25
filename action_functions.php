@@ -162,47 +162,47 @@ class Action
         if (preg_match('/(assisted|manual)/iS', Config::$status)) {
             echo 'Revert [y/N]? ';
             if (strtolower(substr(fgets(Globals::$stdin, 3), 0, 1)) != 'y') {
-                return array(false, 'Manual mode says no');
+                return [false, 'Manual mode says no'];
             }
         }
         if (!preg_match('/(yes|enable|true)/iS', Globals::$run)) {
-            return array(false, 'Run disabled');
+            return [false, 'Run disabled'];
         }
         if ($change['user'] == Config::$user) {
-            return array(false, 'User is myself');
+            return [false, 'User is myself'];
         }
         if (Config::$angry) {
-            return array(true, 'Angry-reverting in angry mode');
+            return [true, 'Angry-reverting in angry mode'];
         }
         if (!self::findAndParseBots($change)) {
-            return array(false, 'Exclusion compliance');
+            return [false, 'Exclusion compliance'];
         }
         if ($change['all']['user'] == $change['all']['common']['creator']) {
-            return array(false, 'User is creator');
+            return [false, 'User is creator'];
         }
         if ($change['all']['user_edit_count'] > 50) {
             if ($change['all']['user_warns'] / $change['all']['user_edit_count'] < 0.1) {
-                return array(false, 'User has edit count');
+                return [false, 'User has edit count'];
             } else {
                 $reason = 'User has edit count, but warns > 10%';
             }
         }
         if (Globals::$tfa == $change['title']) {
-            return array(true, 'Angry-reverting on TFA');
+            return [true, 'Angry-reverting on TFA'];
         }
         if (preg_match('/\* \[\[(' . preg_quote($change['title'], '/') . ')\]\] \- .*/i', Globals::$aoptin)) {
             $logger->info('Angry-reverting [[' . $change['title'] . ']].');
 
-            return array(true, 'Angry-reverting on angry-optin');
+            return [true, 'Angry-reverting on angry-optin'];
         }
 
         $last_revert_time = KeyValueStore::getLastRevertTime($change['title'], $change['user']);
         if (!$last_revert_time or (time() - $last_revert_time) > (24 * 60 * 60)) {
             KeyValueStore::saveRevertTime($change['title'], $change['user']);
-            return array(true, $reason);
+            return [true, $reason];
         }
 
-        return array(false, 'Reverted before');
+        return [false, 'Reverted before'];
     }
 
     public static function findAndParseBots($change)

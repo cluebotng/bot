@@ -48,7 +48,7 @@ function checkMySQL()
     }
 }
 
-function connect_to_mysql($exclude_credentials = array())
+function connect_to_mysql($exclude_credentials = [])
 {
     global $logger;
     $mysql_credential_entry = null;
@@ -100,18 +100,18 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     $mw_mysql = connect_to_mysql();
     $userPage = str_replace(' ', '_', $user);
     $title = str_replace(' ', '_', $title);
-    $data = array(
-        'common' => array(
+    $data = [
+        'common' => [
             'creator' => false,
             'page_made_time' => false,
             'num_recent_edits' => false,
             'num_recent_reversions' => false,
-        ),
+        ],
         'user_reg_time' => false,
         'user_warns' => false,
         'user_edit_count' => false,
         'user_distinct_pages' => false,
-    );
+    ];
     try {
         $res = mysqli_query(
             $mw_mysql,

@@ -30,13 +30,13 @@ class Globals
     public static $cb_mysql;
     public static $cb_redis;
     public static $run;
-    public static $wl = array();
+    public static $wl = [];
     public static $optin;
     public static $edit;
     public static $stalk;
     public static $atime;
     public static $huggle_wl_reload_time;
-    public static $namespaces = array(
+    public static $namespaces = [
         'special' => -1,
         'media' => -2,
         'main' => 0,
@@ -69,5 +69,5 @@ class Globals
         'gadget talk' => 2301,
         'gadget definition' => 2302,
         'gadget definition talk' => 2303,
-    );
+    ];
 }
