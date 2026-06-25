@@ -33,7 +33,7 @@ class Config
     public static $mw_mysql_port = 3306;
     public static $mw_mysql_user = '';
     public static $mw_mysql_pass = '';
-    public static $mw_mysql_credentials = array();
+    public static $mw_mysql_credentials = [];
     public static $mw_mysql_db = 'enwiki_p';
     public static $cb_mysql_host = 'tools-db';
     public static $cb_mysql_port = 3306;

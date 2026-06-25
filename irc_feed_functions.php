@@ -39,7 +39,7 @@ class IrcFeed
         self::send('NICK ' . $nick);
         while (!feof(self::$fd)) {
             $rawline = fgets(self::$fd, 1024);
-            $line = str_replace(array("\n", "\r"), '', $rawline);
+            $line = str_replace(["\n", "\r"], '', $rawline);
             self::loop($line);
         }
     }
@@ -91,7 +91,7 @@ class IrcFeed
         if (!$message) {
             return;
         }
-        $return = array();
+        $return = [];
         $i = 0;
         $quotes = false;
         if ($message[$i] == ':') {
@@ -100,7 +100,7 @@ class IrcFeed
         } else {
             $return['type'] = 'direct';
         }
-        $return['rawpieces'] = array();
+        $return['rawpieces'] = [];
         $temp = '';
         for (; $i < strlen($message); ++$i) {
             if ($quotes and $message[$i] != '"') {
@@ -161,7 +161,7 @@ class IrcFeed
                 $m
             )
         ) {
-            return array(
+            return [
                 'namespace' => $m[1] ? $m[1] : 'Main:',
                 'namespaceid' => namespace2id($m[1] ? substr($m[1], 0, -1) : 'Main'),
                 'title' => $m[5],
@@ -173,7 +173,7 @@ class IrcFeed
                 'length' => $m[12],
                 'comment' => $m[13],
                 'timestamp' => time(),
-            );
+            ];
         }
 
         return null;
