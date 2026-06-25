@@ -97,7 +97,12 @@ class Process
         }
         if (Config::$fork) {
             $logger->debug("Fork finished");
-            die();
+            if (Config::$use_http_feed) {
+                // Avoid propagating shutdown signals from die() which cause curl's connection to get dropped
+                posix_kill(posix_getpid(), SIGKILL);
+            } else {
+                die();
+            }
         }
     }
 
