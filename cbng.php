@@ -97,9 +97,12 @@ function xmlize($data)
 function parseFeedData($feedData)
 {
     global $logger;
+
+    $feedData['namespaced_title'] = ($feedData['namespaceid'] == 0 ? '' : $feedData['namespace']) . $feedData['title'];
+
     $api = fetchRevisionData(
         'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1&prop=revisions&titles=' .
-        urlencode(($feedData['namespaceid'] == 0 ? '' : $feedData['namespace']) . $feedData['title']) .
+        urlencode($feedData['namespaced_title']) .
         '&rvstartid=' . $feedData['revid'] . '&rvlimit=2&rvprop=timestamp|user|content&format=json',
     );
 
@@ -169,10 +172,6 @@ function parseFeedData($feedData)
     ];
 
     $feedData['all'] = $data;
-
-    if (array_key_exists('namespace', $feedData) && $feedData['namespace'] != 'Main:') {
-        $feedData['title'] = $feedData['namespace'] . $feedData['title'];
-    }
 
     return $feedData;
 }

@@ -106,7 +106,7 @@ class Action
             $content . "\n\n"
             . '{{subst:User:' . Config::$user . '/Warnings/Warning'
             . '|1=' . $warning
-            . '|2=' . str_replace('File:', ':File:', $change['title'])
+            . '|2=' . str_replace('File:', ':File:', $change['namespaced_title'])
             . '|3=' . $report
             . ' <!{{subst:ns:0}}-- MySQL ID: ' . $change['mysqlid'] . ' --{{subst:ns:0}}>'
             . '|4=' . $change['mysqlid']
@@ -120,7 +120,7 @@ class Action
 
     public static function doRevert($change)
     {
-        $rev = Api::$a->revisions($change['title'], 5, 'older', false, null, true);
+        $rev = Api::$a->revisions($change['namespaced_title'], 5, 'older', false, null, true);
         if (empty($rev)) {
             return false;
         }
@@ -142,7 +142,7 @@ class Action
             return true;
         }
         $rbret = Api::$a->rollback(
-            $change['title'],
+            $change['namespaced_title'],
             $change['user'],
             'Reverting possible vandalism by [[Special:Contribs/' . $change['user'] . '|' . $change['user'] . ']] ' .
             'to ' . (($revid == 0) ? 'older version' : 'version by ' . $revdata['user']) . '. ' .
@@ -185,18 +185,21 @@ class Action
                 $reason = 'User has edit count, but warns > 10%';
             }
         }
-        if (Globals::$tfa == $change['title']) {
+        if (Globals::$tfa == $change['namespaced_title']) {
             return [true, 'Angry-reverting on TFA'];
         }
-        if (preg_match('/\* \[\[(' . preg_quote($change['title'], '/') . ')\]\] \- .*/i', Globals::$aoptin)) {
-            $logger->info('Angry-reverting [[' . $change['title'] . ']].');
-
+        if (
+            preg_match(
+                '/\* \[\[(' . preg_quote($change['namespaced_title'], '/') . ')\]\] \- .*/i',
+                Globals::$aoptin
+            )
+        ) {
             return [true, 'Angry-reverting on angry-optin'];
         }
 
-        $last_revert_time = KeyValueStore::getLastRevertTime($change['title'], $change['user']);
+        $last_revert_time = KeyValueStore::getLastRevertTime($change['namespaced_title'], $change['user']);
         if (!$last_revert_time or (time() - $last_revert_time) > (24 * 60 * 60)) {
-            KeyValueStore::saveRevertTime($change['title'], $change['user']);
+            KeyValueStore::saveRevertTime($change['namespaced_title'], $change['user']);
             return [true, $reason];
         }
 

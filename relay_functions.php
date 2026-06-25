@@ -28,7 +28,7 @@ class Relay
         self::send(json_encode([
             'change' => [
                 'namespace' => $change['namespace'],
-                'title' => $change['title'],
+                'title' => $change['namespaced_title'],
                 'revision_id' => $change['revid'],
                 'flags' => $change['flags'],
                 'user' => $change['user'],
