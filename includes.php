@@ -33,6 +33,7 @@ require_once 'cluebot-ng.config.php';
 require_once 'action_functions.php';
 require_once 'cbng.php';
 require_once 'irc_feed_functions.php';
+require_once 'http_feed_functions.php';
 require_once 'relay_functions.php';
 require_once 'mysql_functions.php';
 require_once 'globals.php';
