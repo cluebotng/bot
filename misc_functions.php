@@ -20,20 +20,6 @@ namespace CluebotNG;
  * You should have received a copy of the GNU General Public License
  * along with ClueBot NG.  If not, see <http://www.gnu.org/licenses/>.
  */
-function myfnmatch($pattern, $string)
-{
-    if (strlen($string) < 4000) {
-        return fnmatch($pattern, $string);
-    } else {
-        $pattern = strtr(preg_quote($pattern, '#'), array('\*' => '.*', '\?' => '.', '\[' => '[', '\]' => ']'));
-        if (preg_match('#^' . $pattern . '$#', $string)) {
-            return true;
-        }
-
-        return false;
-    }
-}
-
 function refreshDataTick()
 {
     global $logger;
@@ -84,5 +70,5 @@ function doInit()
     Globals::$run = Api::$q->getpage('User:' . Config::$user . '/Run');
     Globals::$optin = Api::$q->getpage('User:' . Config::$user . '/Optin');
     Globals::$aoptin = Api::$q->getpage('User:' . Config::$user . '/AngryOptin');
-    loadHuggleWhitelist();
+    refreshDataTick();
 }

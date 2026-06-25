@@ -37,11 +37,14 @@ class Action
         if (!Config::$dry) {
             if ($warning >= 4) {
                 /* Report them if they have been warned 4 times. */
-                $logger->info("Reporting " . $change['user'] . " (" . $warning . ") to AIV");
+                $logger->info('Reporting ' . $change['user'] . ' to AIV', ['revision_id' => $change['revid']]);
                 self::aiv($change, $report);
             } else {
                 /* Warn them if they haven't been warned 4 times. */
-                $logger->info("Warning " . $change['user'] . " (" . $warning . ")");
+                $logger->info(
+                    'Warning ' . $change['user'] . ' with level ' . $warning,
+                    ['revision_id' => $change['revid']]
+                );
                 self::warn($change, $report, $tpcontent, $warning);
             }
         }
@@ -52,6 +55,7 @@ class Action
         $warning = 0;
         $content = Api::$q->getpage('User talk:' . $user);
         if (
+            $content &&
             preg_match_all(
                 '/<!-- Template:(uw-[a-z]*(\d)(im)?|Blatantvandal \(serious warning\)) -->.*' .
                 '(\d{2}):(\d{2}), (\d+) ([a-zA-Z]+) (\d{4}) \(UTC\)/iU',
@@ -80,15 +84,10 @@ class Action
         global $logger;
         $aivdata = Api::$q->getpage('Wikipedia:Administrator_intervention_against_vandalism/TB2');
         if (!preg_match('/' . preg_quote($change['user'], '/') . '/i', $aivdata)) {
-            $logger->info(
-                '!admin Reporting [[User:' . $change['user'] .
-                ']] to [[WP:AIV]]. Contributions: [[Special:Contributions/' . $change['user'] .
-                ']] Block: [[Special:Blockip/' . $change['user'] . ']]'
-            );
             Api::$a->edit(
                 'Wikipedia:Administrator_intervention_against_vandalism/TB2',
                 $aivdata . "\n\n" . '* {{' .
-                ((long2ip(ip2long($change['user'])) == $change['user']) ? 'IPvandal' : 'Vandal') .
+                (filter_var($change['user'], FILTER_VALIDATE_IP) ? 'IPvandal' : 'Vandal') .
                 '|' . $change['user'] . '}}'
                 . ' - ' . $report . ' (Automated) ~~~~' . "\n",
                 'Automatically reporting [[Special:Contributions/' . $change['user'] . ']].' .
@@ -102,7 +101,6 @@ class Action
     private static function warn($change, $report, $content, $warning)
     {
         global $logger;
-        $logger->info('Warning ' . $change['user']);
         $ret = Api::$a->edit(
             'User talk:' . $change['user'],
             $content . "\n\n"
@@ -117,8 +115,7 @@ class Action
             'Warning [[Special:Contributions/' . $change['user'] . '|' . $change['user'] . ']] - #' . $warning,
             false,
             false
-        ); /* Warn the user */
-        $logger->debug($ret);
+        );
     }
 
     public static function doRevert($change)
@@ -128,7 +125,6 @@ class Action
             return false;
         }
         $revid = 0;
-        $rbtok = $rev[0]['rollbacktoken'];
         $revdata = null;
         foreach ($rev as $revdata) {
             if ($revdata['user'] != $change['user']) {
@@ -152,7 +148,6 @@ class Action
             'to ' . (($revid == 0) ? 'older version' : 'version by ' . $revdata['user']) . '. ' .
             '[[WP:CBFP|Report False Positive?]] ' .
             'Thanks, [[WP:CBNG|' . Config::$user . ']]. (' . $change['mysqlid'] . ') (Bot)',
-            $rbtok
         );
 
         return $rbret;

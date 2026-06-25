@@ -160,7 +160,7 @@ class Process
             } else {
                 $change['edit_status'] = 'beaten';
                 $rv2 = Api::$a->revisions($change['title'], 1);
-                if ($change['user'] != $rv2[0]['user']) {
+                if (!empty($rv2) && $change['user'] != $rv2[0]['user']) {
                     $logger->info(
                         'Revert Beaten By: ' . $rv2[0]['user'],
                         ['revision_id' => $change['revid'], 'score' => $score]
