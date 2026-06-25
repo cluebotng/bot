@@ -48,19 +48,23 @@ function checkMySQL()
     }
 }
 
-function connect_to_mysql($exclude_credentials = [])
+function connect_to_mysql($exclude_users = [])
 {
     global $logger;
-    $mysql_credential_entry = null;
+
     if (count(Config::$mw_mysql_credentials) > 0) {
-        $candidate_credentials = Config::$mw_mysql_credentials;
-        foreach ($exclude_credentials as $excluded_credential) {
-            unset($candidate_credentials[$excluded_credential]);
+        $candidate_credentials = array_filter(
+            Config::$mw_mysql_credentials,
+            fn($cred) => !in_array($cred['user'], $exclude_users, true)
+        );
+        if (empty($candidate_credentials)) {
+            $logger->error("ran out of database credentials");
+            die();
         }
-        $mysql_credential_entry = array_rand($candidate_credentials);
-        $mw_mysql_user = $candidate_credentials[$mysql_credential_entry]['user'];
-        $mw_mysql_pass = $candidate_credentials[$mysql_credential_entry]['pass'];
-    } elseif (count($exclude_credentials) > 0) {
+        $selected = $candidate_credentials[array_rand($candidate_credentials)];
+        $mw_mysql_user = $selected['user'];
+        $mw_mysql_pass = $selected['pass'];
+    } elseif (!empty($exclude_users)) {
         $logger->error("ran out of database credentials");
         die();
     } else {
@@ -79,12 +83,13 @@ function connect_to_mysql($exclude_credentials = [])
             Config::$mw_mysql_port
         );
     } catch (mysqli_sql_exception $e) {
-        if ($e->getCode() == 1226 && $mysql_credential_entry != null) {
+        if ($e->getCode() == 1226) {
             $logger->warning("ran out of database connections for " . $mw_mysql_user);
             usleep(10000);
-            $exclude_credentials[] = $mysql_credential_entry;
-            return connect_to_mysql($exclude_credentials);
+            $exclude_users[] = $mw_mysql_user;
+            return connect_to_mysql($exclude_users);
         }
+        die('replica mysql error: ' . $e->getMessage());
     }
     if (!$mw_mysql) {
         die('replica mysql error: ' . mysqli_connect_error());
@@ -245,11 +250,11 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
                 mysqli_real_escape_string($mw_mysql, $user) . '"'
             );
 
-            $d = mysqli_fetch_assoc($res);
             if ($res === false) {
                 $logger->warning("user registration query returned no data for " .
                                     $user . ": " . mysqli_error($mw_mysql));
             } else {
+                $d = mysqli_fetch_assoc($res);
                 $data['user_reg_time'] = $d['user_registration'];
             }
         } catch (mysqli_sql_exception $e) {
