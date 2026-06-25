@@ -66,11 +66,9 @@ class Process
             $logger->debug("Fork started");
         }
         $change = parseFeedData($change);
-        $change['justtitle'] = $change['title'];
-        if (array_key_exists('namespace', $change) && $change['namespace'] != 'Main:') {
-            $change['title'] = $change['namespace'] . $change['title'];
+        if ($change !== null) {
+            self::processEditThread($change);
         }
-        self::processEditThread($change);
         if (Config::$fork) {
             $logger->debug("Fork finished");
             die();

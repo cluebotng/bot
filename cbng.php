@@ -31,54 +31,34 @@ function namespace2name($nsid)
     return ucfirst($convertFlipped[$nsid]);
 }
 
-function setupUrlFetch($url)
+function fetchRevisionData($url)
 {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_USERAGENT, 'ClueBot/2.0');
     if (isset($proxyhost) and isset($proxyport) and $proxyport != null and $proxyhost != null) {
-        curl_setopt($ch, CURLOPT_PROXYTYPE, isset($proxytype) ? $proxytype : CURLPROXY_HTTP);
-        curl_setopt($ch, CURLOPT_PROXY, $proxyhost);
-        curl_setopt($ch, CURLOPT_PROXYPORT, $proxyport);
+        curl_setopt_array($ch, [
+            CURLOPT_PROXYTYPE => isset($proxytype) ? $proxytype : CURLPROXY_HTTP,
+            CURLOPT_PROXY => $proxyhost,
+            CURLOPT_PROXYPORT => $proxyport,
+        ]);
     }
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-    curl_setopt($ch, CURLOPT_HEADER, 0);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 120);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_HTTPGET, 1);
-    curl_setopt($ch, CURLOPT_FORBID_REUSE, 1);
-    curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
-    curl_setopt($ch, CURLOPT_ENCODING, '');
-    curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-
-    return $ch;
-}
-
-function getUrlsInParallel($urls)
-{
-    $mh = curl_multi_init();
-    $chs = array();
-    foreach ($urls as $url) {
-        $ch = setupUrlFetch($url);
-        curl_multi_add_handle($mh, $ch);
-        $chs[] = $ch;
-    }
-    $running = null;
-    curl_multi_exec($mh, $running);
-    while ($running > 0) {
-        curl_multi_select($mh);
-        curl_multi_exec($mh, $running);
-    }
-    $ret = array();
-    foreach ($chs as $ch) {
-        $ret[] = json_decode(curl_multi_getcontent($ch), true);
-        curl_multi_remove_handle($mh, $ch);
-    }
-    curl_multi_close($mh);
-
-    return $ret;
+    curl_setopt_array($ch, [
+        CURLOPT_USERAGENT      => 'ClueBot/2.0',
+        CURLOPT_URL            => $url,
+        CURLOPT_FOLLOWLOCATION => 1,
+        CURLOPT_MAXREDIRS      => 10,
+        CURLOPT_HEADER         => 0,
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_TIMEOUT        => 120,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_HTTPGET        => 1,
+        CURLOPT_FORBID_REUSE   => 1,
+        CURLOPT_FRESH_CONNECT  => 1,
+        CURLOPT_ENCODING       => '',
+        CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
+    ]);
+    $result = curl_exec($ch);
+    $data = json_decode($result, true);
+    return current($data['query']['pages']);
 }
 
 function xmlizePart($doc, $key, $data)
@@ -111,17 +91,26 @@ function xmlize($data)
     return $doc->saveXML();
 }
 
-function parseFeedData($feedData, $useOld = false)
+function parseFeedData($feedData)
 {
     global $logger;
-    $startTime = microtime(true);
-    $urls = array(
+    $api = fetchRevisionData(
         'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1&prop=revisions&titles=' .
         urlencode(($feedData['namespaceid'] == 0 ? '' : $feedData['namespace'] . ':') . $feedData['title']) .
         '&rvstartid=' . $feedData['revid'] . '&rvlimit=2&rvprop=timestamp|user|content&format=json',
     );
-    list($api) = getUrlsInParallel($urls);
-    $api = current($api['query']['pages']);
+
+    if (
+        !(isset($api['revisions'][1]['user'])
+        and isset($api['revisions'][0]['timestamp'])
+        and isset($api['revisions'][0]['*'])
+        and isset($api['revisions'][1]['timestamp'])
+        and isset($api['revisions'][1]['*']))
+    ) {
+        $logger->warning("Failed to get revision info", ['revision_id' => $change['revid']]);
+        return null;
+    }
+
     $cb = getCbData(
         $feedData['user'],
         $feedData['namespaceid'],
@@ -134,8 +123,8 @@ function parseFeedData($feedData, $useOld = false)
         and isset($cb['user_warns'])
         and isset($cb['user_reg_time']))
     ) {
-        $logger->error("Failed to get user info: " . var_export($feedData, true) . ", " . var_export($cb, true));
-        return false;
+        $logger->warning("Failed to get user info", ['revision_id' => $change['revid']]);
+        return null;
     }
     if (
         !(isset($cb['common']['page_made_time'])
@@ -143,20 +132,11 @@ function parseFeedData($feedData, $useOld = false)
         and isset($cb['common']['num_recent_edits'])
         and isset($cb['common']['num_recent_reversions']))
     ) {
-        $logger->error("Failed to get common info: " . var_export($feedData, true) . ", " . var_export($cb, true));
-        return false;
+        $logger->warning("Failed to get common info", ['revision_id' => $change['revid']]);
+        return null;
     }
-    if (
-        !(isset($api['revisions'][1]['user'])
-        and isset($api['revisions'][0]['timestamp'])
-        and isset($api['revisions'][0]['*'])
-        and isset($api['revisions'][1]['timestamp'])
-        and isset($api['revisions'][1]['*']))
-    ) {
-        $logger->error("Failed to get api info: " . var_export($feedData, true) . ", " . var_export($api, true));
-        return false;
-    }
-    $data = array(
+
+    $data = [
         'EditType' => 'change',
         'EditID' => $feedData['revid'],
         'comment' => $feedData['comment'],
@@ -166,26 +146,30 @@ function parseFeedData($feedData, $useOld = false)
         'user_warns' => $cb['user_warns'],
         'prev_user' => $api['revisions'][1]['user'],
         'user_reg_time' => $cb['user_reg_time'],
-        'common' => array(
+        'common' => [
             'page_made_time' => $cb['common']['page_made_time'],
             'title' => $feedData['title'],
             'namespace' => $feedData['namespace'],
             'creator' => $cb['common']['creator'],
             'num_recent_edits' => $cb['common']['num_recent_edits'],
             'num_recent_reversions' => $cb['common']['num_recent_reversions'],
-        ),
-        'current' => array(
-            'minor' => (in_array('m', $feedData['flags'])) ? 'true' : 'false',
+        ],
+        'current' => [
+            'minor' => (in_array('M', $feedData['flags'])) ? 'true' : 'false',
             'timestamp' => strtotime($api['revisions'][0]['timestamp']),
             'text' => $api['revisions'][0]['*'],
-        ),
-        'previous' => array(
+        ],
+        'previous' => [
             'timestamp' => strtotime($api['revisions'][1]['timestamp']),
             'text' => $api['revisions'][1]['*'],
-        ),
-    );
-    $feedData['startTime'] = $startTime;
+        ],
+    ];
+
     $feedData['all'] = $data;
+
+    if (array_key_exists('namespace', $feedData) && $feedData['namespace'] != 'Main:') {
+        $feedData['title'] = $feedData['namespace'] . $feedData['title'];
+    }
 
     return $feedData;
 }
