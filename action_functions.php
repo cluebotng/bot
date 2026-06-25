@@ -124,17 +124,20 @@ class Action
     public static function doRevert($change)
     {
         $rev = Api::$a->revisions($change['title'], 5, 'older', false, null, true);
+        if (empty($rev)) {
+            return false;
+        }
         $revid = 0;
         $rbtok = $rev[0]['rollbacktoken'];
-        $revdata = false;
+        $revdata = null;
         foreach ($rev as $revdata) {
             if ($revdata['user'] != $change['user']) {
                 $revid = $revdata['revid'];
                 break;
             }
         }
-        if ($revdata === false) {
-            return;
+        if ($revdata === null) {
+            return false;
         }
         if (($revdata['user'] == Config::$user) or (in_array($revdata['user'], Config::$friends))) {
             return false;
