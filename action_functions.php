@@ -23,6 +23,13 @@ namespace CluebotNG;
 
 class Action
 {
+    private static $months = [
+        'January' => 1, 'February' => 2, 'March' => 3,
+        'April' => 4, 'May' => 5, 'June' => 6, 'July' => 7,
+        'August' => 8, 'September' => 9, 'October' => 10,
+        'November' => 11, 'December' => 12,
+    ];
+
     public static function doWarn($change, $report)
     {
         global $logger;
@@ -54,16 +61,10 @@ class Action
             )
         ) {
             foreach ($match as $m) {
-                $month = array(
-                    'January' => 1, 'February' => 2, 'March' => 3,
-                    'April' => 4, 'May' => 5, 'June' => 6, 'July' => 7,
-                    'August' => 8, 'September' => 9, 'October' => 10,
-                    'November' => 11, 'December' => 12,
-                );
                 if ($m[1] == 'Blatantvandal (serious warning)') {
                     $m[2] = 4;
                 }
-                if ((time() - gmmktime($m[4], $m[5], 0, $month[$m[7]], $m[6], $m[8])) <= (2 * 24 * 60 * 60)) {
+                if ((time() - gmmktime($m[4], $m[5], 0, self::$months[$m[7]], $m[6], $m[8])) <= (2 * 24 * 60 * 60)) {
                     if ($m[2] > $warning) {
                         $warning = $m[2];
                     }
