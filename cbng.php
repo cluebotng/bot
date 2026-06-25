@@ -58,6 +58,9 @@ function fetchRevisionData($url)
     ]);
     $result = curl_exec($ch);
     $data = json_decode($result, true);
+    if (!isset($data['query']['pages'])) {
+        return null;
+    }
     return current($data['query']['pages']);
 }
 
@@ -96,7 +99,7 @@ function parseFeedData($feedData)
     global $logger;
     $api = fetchRevisionData(
         'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1&prop=revisions&titles=' .
-        urlencode(($feedData['namespaceid'] == 0 ? '' : $feedData['namespace'] . ':') . $feedData['title']) .
+        urlencode(($feedData['namespaceid'] == 0 ? '' : $feedData['namespace']) . $feedData['title']) .
         '&rvstartid=' . $feedData['revid'] . '&rvlimit=2&rvprop=timestamp|user|content&format=json',
     );
 
@@ -107,7 +110,7 @@ function parseFeedData($feedData)
         and isset($api['revisions'][1]['timestamp'])
         and isset($api['revisions'][1]['*']))
     ) {
-        $logger->warning("Failed to get revision info", ['revision_id' => $change['revid']]);
+        $logger->warning("Failed to get revision info", ['revision_id' => $feedData['revid']]);
         return null;
     }
 
@@ -123,7 +126,7 @@ function parseFeedData($feedData)
         and isset($cb['user_warns'])
         and isset($cb['user_reg_time']))
     ) {
-        $logger->warning("Failed to get user info", ['revision_id' => $change['revid']]);
+        $logger->warning("Failed to get user info", ['revision_id' => $feedData['revid']]);
         return null;
     }
     if (
@@ -132,7 +135,7 @@ function parseFeedData($feedData)
         and isset($cb['common']['num_recent_edits'])
         and isset($cb['common']['num_recent_reversions']))
     ) {
-        $logger->warning("Failed to get common info", ['revision_id' => $change['revid']]);
+        $logger->warning("Failed to get common info", ['revision_id' => $feedData['revid']]);
         return null;
     }
 
