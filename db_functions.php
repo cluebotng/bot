@@ -23,12 +23,7 @@ namespace CluebotNG;
 
 class Db
 {
-    public static $coreNodeCache = 0;
-    public static $ircRelayNodeCache = 0;
-    public static $coreNode = null;
-    public static $ircRelayNode = null;
-
-    // Returns the edit it for the vandalism
+    // Returns the edit id for the vandalism
     public static function detectedVandalism($user, $title, $heuristic, $reason, $url, $old_rev_id, $rev_id)
     {
         checkMySQL();

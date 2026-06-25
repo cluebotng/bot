@@ -57,7 +57,7 @@ function connect_to_mysql($exclude_credentials = array())
         foreach ($exclude_credentials as $excluded_credential) {
             unset($candidate_credentials[$excluded_credential]);
         }
-        $mysql_credential_entry = rand(0, count($candidate_credentials) - 1);
+        $mysql_credential_entry = array_rand($candidate_credentials);
         $mw_mysql_user = $candidate_credentials[$mysql_credential_entry]['user'];
         $mw_mysql_pass = $candidate_credentials[$mysql_credential_entry]['pass'];
     } elseif (count($exclude_credentials) > 0) {
