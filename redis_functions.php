@@ -26,17 +26,17 @@ class KeyValueStore
     public static function checkConnection()
     {
         global $logger;
-        if (!Globals::$cb_redis || !Globals::$cb_redis->ping()) {
-            try {
+        try {
+            if (!Globals::$cb_redis || !Globals::$cb_redis->ping()) {
                 $redis = new \Redis();
                 $redis->pconnect(Config::$cb_redis_host, Config::$cb_redis_port, 2);
                 $redis->auth(Config::$cb_redis_pass);
                 $redis->select(Config::$cb_redis_db);
 
                 Globals::$cb_redis = $redis;
-            } catch (\RedisException $e) {
-                $logger->warning("Redis connection failed: " . $e->getMessage());
             }
+        } catch (\RedisException $e) {
+            $logger->warning("Redis connection failed: " . $e->getMessage());
         }
     }
 
