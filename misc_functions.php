@@ -42,6 +42,19 @@ function refreshDataTick()
         Globals::$huggle_wl_reload_time = time();
         loadHuggleWhitelist();
     }
+
+    if (!Globals::$tfas || Globals::$tfas + 3600 <= time()) {
+        Globals::$tfas = time();
+        if (
+            preg_match(
+                '/{{TFAFULL\|([^}]+)}}/iU',
+                Api::$q->getpage('Wikipedia:Today\'s featured article/' . date('F j, Y')),
+                $tfam
+            )
+        ) {
+            Globals::$tfa = $tfam[1];
+        }
+    }
 }
 
 function loadHuggleWhitelist()
