@@ -33,11 +33,9 @@ require_once 'includes.php';
                 }
                 if (\pcntl_wifsignaled($status)) {
                     $sig = \pcntl_wtermsig($status);
-                    if (Config::$use_http_feed && $sig === SIGKILL) {
-                        // Expected kill signal
-                        break;
+                    if ($sig !== SIGKILL) {
+                        $logger->error("Child process {$x} killed by signal " . $sig);
                     }
-                    $logger->error("Child process {$x} killed by signal " . $sig);
                 } elseif (\pcntl_wifexited($status)) {
                     $exitCode = \pcntl_wexitstatus($status);
                     if ($exitCode !== 0) {
@@ -50,11 +48,4 @@ require_once 'includes.php';
 });
 date_default_timezone_set('UTC');
 doInit();
-
-for (;;) {
-    if (Config::$use_http_feed) {
-        HttpFeed::stream();
-    } else {
-        IrcFeed::connectLoop();
-    }
-}
+HttpFeed::stream();

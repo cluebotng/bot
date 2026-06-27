@@ -50,7 +50,6 @@ class Config
     public static $cb_redis_port = 6379;
     public static $cb_redis_db = 1;
     public static $cb_redis_pass = '';
-    public static $use_http_feed = true;
 
     public static function init()
     {
@@ -71,7 +70,5 @@ class Config
         if ($mysql_credentials = getenv('CBNG_BOT_MYSQL_CREDENTIALS')) {
             self::$mw_mysql_credentials = json_decode($mysql_credentials, true);
         }
-
-        self::$use_http_feed = trim(getenv('CBNG_USE_HTTP_FEED', 'true')) === 'true';
     }
 }
