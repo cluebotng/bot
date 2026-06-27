@@ -109,8 +109,6 @@ class Process
     public static function processEditThread($change)
     {
         global $logger;
-        $change['edit_status'] = 'not_reverted';
-        $change['edit_score'] = 'N/A';
         $score = null;
         if (!array_key_exists('all', $change)) {
             $logger->debug('Skipping change as edit data is missing', ['revision_id' => $change['revid']]);
@@ -153,17 +151,14 @@ class Process
             $change['revid']
         );
         list($shouldRevert, $revertReason) = Action::shouldRevert($change);
-        $change['revert_reason'] = $revertReason;
         if ($shouldRevert) {
             $logger->info('Reverting: ' . $revertReason, ['revision_id' => $change['revid'], 'score' => $score]);
             $rbret = Action::doRevert($change);
             if ($rbret !== false) {
-                $change['edit_status'] = 'reverted';
                 Relay::publish($change, $score, true, $revertReason);
                 Action::doWarn($change, $report);
                 Db::vandalismReverted($change['mysqlid']);
             } else {
-                $change['edit_status'] = 'beaten';
                 $rv2 = Api::$a->revisions($change['title'], 1);
                 if (!empty($rv2) && $change['user'] != $rv2[0]['user']) {
                     $logger->info(
