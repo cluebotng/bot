@@ -20,17 +20,6 @@ namespace CluebotNG;
  * You should have received a copy of the GNU General Public License
  * along with ClueBot NG.  If not, see <http://www.gnu.org/licenses/>.
  */
-function namespace2id($ns)
-{
-    return Globals::$namespaces[strtolower(str_replace('_', ' ', $ns))];
-}
-
-function namespace2name($nsid)
-{
-    $convertFlipped = array_flip(Globals::$namespaces);
-    return ucfirst($convertFlipped[$nsid]);
-}
-
 function fetchRevisionData($url)
 {
     $ch = curl_init();

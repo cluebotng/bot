@@ -33,38 +33,4 @@ class Globals
     public static $optin;
     public static $atime;
     public static $huggle_wl_reload_time;
-    public static $namespaces = [
-        'special' => -1,
-        'media' => -2,
-        'main' => 0,
-        'talk' => 1,
-        'user' => 2,
-        'user talk' => 3,
-        'wikipedia' => 4,
-        'wikipedia talk' => 5,
-        'file' => 6,
-        'file talk' => 7,
-        'mediawiki' => 8,
-        'mediawiki talk' => 9,
-        'template' => 10,
-        'template talk' => 11,
-        'help' => 12,
-        'help talk' => 13,
-        'category' => 14,
-        'category talk' => 15,
-        'portal' => 100,
-        'portal talk' => 101,
-        'book' => 108,
-        'book talk' => 109,
-        'draft' => 118,
-        'draft talk' => 119,
-        'timedtext' => 710,
-        'timedtext talk' => 711,
-        'module' => 828,
-        'module talk' => 829,
-        'gadget' => 2300,
-        'gadget talk' => 2301,
-        'gadget definition' => 2302,
-        'gadget definition talk' => 2303,
-    ];
 }
