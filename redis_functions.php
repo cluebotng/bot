@@ -64,4 +64,22 @@ class KeyValueStore
         }
         return self::$client->set(self::getKey($page_title, $user), time(), (24 * 60 * 60));
     }
+
+    public static function getLastHttpEventId()
+    {
+        self::checkConnection();
+        if (self::$client === null) {
+            return null;
+        }
+        return self::$client->get('cbng:http_feed_last_id') ?? null;
+    }
+
+    public static function saveLastHttpEventId($id)
+    {
+        self::checkConnection();
+        if (self::$client === null) {
+            return false;
+        }
+        return self::$client->set('cbng:http_feed_last_id', $id, (10 * 60));
+    }
 }
