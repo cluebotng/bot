@@ -29,7 +29,7 @@ class KeyValueStore
         try {
             if (!Globals::$cb_redis || !Globals::$cb_redis->ping()) {
                 $redis = new \Redis();
-                $redis->pconnect(Config::$cb_redis_host, Config::$cb_redis_port, 2);
+                $redis->pconnect(Config::$cb_redis_host, Config::$cb_redis_port, 1);
                 $redis->auth(Config::$cb_redis_pass);
                 $redis->select(Config::$cb_redis_db);
 
@@ -42,7 +42,7 @@ class KeyValueStore
 
     public static function getKey($page_title, $user)
     {
-        return hash('sha256', $page_title . ':' . $user);
+        return 'cbng:last_reverted:' . hash('sha256', $page_title . ':' . $user);
     }
 
     public static function getLastRevertTime($page_title, $user)
