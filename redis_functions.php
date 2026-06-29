@@ -23,17 +23,19 @@ namespace CluebotNG;
 
 class KeyValueStore
 {
+    private static $client = null;
+
     public static function checkConnection()
     {
         global $logger;
         try {
-            if (!Globals::$cb_redis || !Globals::$cb_redis->ping()) {
+            if (self::$client === null || !self::$client->ping()) {
                 $redis = new \Redis();
                 $redis->pconnect(Config::$cb_redis_host, Config::$cb_redis_port, 1);
                 $redis->auth(Config::$cb_redis_pass);
                 $redis->select(Config::$cb_redis_db);
 
-                Globals::$cb_redis = $redis;
+                self::$client = $redis;
             }
         } catch (\RedisException $e) {
             $logger->warning("Redis connection failed: " . $e->getMessage());
@@ -48,18 +50,18 @@ class KeyValueStore
     public static function getLastRevertTime($page_title, $user)
     {
         self::checkConnection();
-        if (Globals::$cb_redis === null) {
+        if (self::$client === null) {
             return null;
         }
-        return Globals::$cb_redis->get(self::getKey($page_title, $user));
+        return self::$client->get(self::getKey($page_title, $user));
     }
 
     public static function saveRevertTime($page_title, $user)
     {
         self::checkConnection();
-        if (Globals::$cb_redis === null) {
+        if (self::$client === null) {
             return false;
         }
-        return Globals::$cb_redis->set(self::getKey($page_title, $user), time(), (24 * 60 * 60));
+        return self::$client->set(self::getKey($page_title, $user), time(), (24 * 60 * 60));
     }
 }

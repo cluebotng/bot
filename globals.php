@@ -28,7 +28,6 @@ class Globals
     public static $tfa;
     public static $aoptin;
     public static $cb_mysql;
-    public static $cb_redis;
     public static $run;
     public static $wl = [];
     public static $optin;
