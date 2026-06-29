@@ -25,7 +25,7 @@ class KeyValueStore
 {
     private static $client = null;
 
-    public static function checkConnection()
+    private static function connect()
     {
         global $logger;
         try {
@@ -34,53 +34,62 @@ class KeyValueStore
                 $redis->pconnect(Config::$cb_redis_host, Config::$cb_redis_port, 1);
                 $redis->auth(Config::$cb_redis_pass);
                 $redis->select(Config::$cb_redis_db);
-
                 self::$client = $redis;
             }
         } catch (\RedisException $e) {
-            $logger->warning("Redis connection failed: " . $e->getMessage());
+            $logger->warning('Redis connection failed: ' . $e->getMessage());
+            self::$client = null;
         }
     }
 
-    public static function getKey($page_title, $user)
+    private static function executeGet($key)
     {
-        return 'cbng:last_reverted:' . hash('sha256', $page_title . ':' . $user);
+        global $logger;
+        self::connect();
+        if (self::$client !== null) {
+            try {
+                return self::$client->get($key);
+            } catch (\RedisException $e) {
+                $logger->warning('Redis get operation failed: ' . $e->getMessage());
+            }
+        }
+        return null;
+    }
+
+    private static function executeSet($key, $value, $ttl)
+    {
+        global $logger;
+        self::connect();
+        if (self::$client !== null) {
+            try {
+                return self::$client->set($key, $value, $ttl);
+            } catch (\RedisException $e) {
+                $logger->warning('Redis set operation failed: ' . $e->getMessage());
+            }
+        }
     }
 
     public static function getLastRevertTime($page_title, $user)
     {
-        self::checkConnection();
-        if (self::$client === null) {
-            return null;
-        }
-        $value = self::$client->get(self::getKey($page_title, $user));
-        return $value !== null ? (int) $value : null;
+        $key = 'cbng:last_reverted:' . hash('sha256', $page_title . ':' . $user);
+        $value = self::executeGet($key);
+        return ($value !== false && $value !== null) ? (int) $value : null;
     }
 
     public static function saveRevertTime($page_title, $user)
     {
-        self::checkConnection();
-        if (self::$client === null) {
-            return false;
-        }
-        return self::$client->set(self::getKey($page_title, $user), time(), (24 * 60 * 60));
+        $key = 'cbng:last_reverted:' . hash('sha256', $page_title . ':' . $user);
+        self::executeSet($key, time(), 24 * 60 * 60);
     }
 
     public static function getLastHttpEventId()
     {
-        self::checkConnection();
-        if (self::$client === null) {
-            return null;
-        }
-        return self::$client->get('cbng:http_feed_last_id') ?? null;
+        $value = self::executeGet('cbng:http_feed_last_id');
+        return ($value !== false) ? $value : null;
     }
 
     public static function saveLastHttpEventId($id)
     {
-        self::checkConnection();
-        if (self::$client === null) {
-            return false;
-        }
-        return self::$client->set('cbng:http_feed_last_id', $id, (10 * 60));
+        self::executeSet('cbng:http_feed_last_id', $id, 10 * 60);
     }
 }
