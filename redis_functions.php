@@ -53,7 +53,8 @@ class KeyValueStore
         if (self::$client === null) {
             return null;
         }
-        return self::$client->get(self::getKey($page_title, $user));
+        $value = self::$client->get(self::getKey($page_title, $user));
+        return $value !== null ? (int) $value : null;
     }
 
     public static function saveRevertTime($page_title, $user)
