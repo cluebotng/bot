@@ -31,6 +31,11 @@ class HttpFeed
     {
         global $logger;
 
+        self::$lastEventId = KeyValueStore::getLastHttpEventId();
+        if (self::$lastEventId !== null) {
+            $logger->info("Using last event id: " . self::$lastEventId);
+        }
+
         $recentAttempts = 0;
         for (;;) {
             $recentAttempts++;
@@ -79,6 +84,9 @@ class HttpFeed
                 self::process($event);
             }
 
+            if (self::$lastEventId !== null) {
+                KeyValueStore::saveLastHttpEventId(self::$lastEventId);
+            }
             refreshDataTick();
         } while ($running > 0);
 
