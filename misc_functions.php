@@ -31,6 +31,11 @@ function refreshDataTick()
 
     if (!Globals::$tfas || Globals::$tfas + 3600 <= time()) {
         Globals::$tfas = time();
+        Metrics::set(
+            'bot_tfa_last_reload_seconds',
+            'Unix timestamp of the last TFA page reload',
+            (float)Globals::$tfas
+        );
         if (
             preg_match(
                 '/{{TFAFULL\|([^}]+)}}/iU',
@@ -49,6 +54,16 @@ function loadHuggleWhitelist()
     if (($hgWLRaw = @file_get_contents('https://huggle.bena.rocks/?action=read&wp=en.wikipedia.org')) != null) {
         Globals::$wl = array_slice(explode('|', $hgWLRaw), 0, -1);
         $logger->info('Loaded huggle whitelist (' . count(Globals::$wl) . ')');
+        Metrics::set(
+            'bot_whitelist_last_reload_seconds',
+            'Unix timestamp of the last successful huggle whitelist reload',
+            (float)time()
+        );
+        Metrics::set(
+            'bot_whitelist_entries',
+            'Current number of entries in the huggle whitelist',
+            (float)count(Globals::$wl)
+        );
     } else {
         $logger->warning('Failed to load huggle whitelist');
     }
