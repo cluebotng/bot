@@ -127,10 +127,23 @@ class HttpFeed
     {
         global $logger;
 
+        Metrics::increment(
+            'bot_stream_events_received_total',
+            'Total events received from the MediaWiki EventStream',
+            ['event_type'],
+            [$event['type'] ?? 'unknown']
+        );
+
         // Skip these types, they don't directly have revisions, no point spending time constructing
         // an artificial url to throw them away in the namespace check later.
         if ($event['type'] === 'log') {
             $logger->debug('Skipping due to event type: ' . print_r($event, true));
+            Metrics::increment(
+                'bot_stream_events_skipped_total',
+                'Total events skipped at the stream level',
+                ['reason'],
+                ['event_type_log']
+            );
             return;
         }
 
@@ -190,6 +203,12 @@ class HttpFeed
                 $old_revid = $parsedUrlParams['oldid'] ?? 0;
             } else {
                 $logger->error('Could not determine revision IDs for event: ' . print_r($event, true));
+                Metrics::increment(
+                    'bot_stream_events_skipped_total',
+                    'Total events skipped at the stream level',
+                    ['reason'],
+                    ['no_revision_ids']
+                );
                 return;
             }
         }
