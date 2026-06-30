@@ -113,7 +113,7 @@ class HttpFeed
                 self::$lastEventId = trim(substr($line, 3));
             } elseif (str_starts_with($line, 'data:')) {
                 if ($event = json_decode(trim(substr($line, 5)), true)) {
-                    if ($event['server_name'] === 'en.wikipedia.org') {
+                    if (($event['server_name'] ?? null) === 'en.wikipedia.org') {
                         self::$queue[] = $event;
                     }
                 }
