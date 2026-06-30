@@ -15,11 +15,13 @@
     "require": {
         "monolog/monolog": "^3.0",
         "cluebotng/wikipedia": "^v2.1.1",
+        "promphp/prometheus_client_php": "^2.0",
         "ext-pcntl": "*",
         "ext-redis": "*",
         "ext-mysqli": "*",
         "ext-curl": "*",
-        "ext-json": "*"
+        "ext-json": "*",
+        "amphp/http-server": "^3.4"
     },
     "config": {
         "platform": {

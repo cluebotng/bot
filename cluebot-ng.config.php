@@ -50,6 +50,8 @@ class Config
     public static $cb_redis_port = 6379;
     public static $cb_redis_db = 1;
     public static $cb_redis_pass = '';
+    public static $metrics_enabled = true;
+    public static $metrics_port = 9095;
 
     public static function init()
     {
@@ -59,16 +61,34 @@ class Config
             self::$pass = trim(file_get_contents(getenv('HOME') . '/.cluebotng.bot.password'));
         }
 
-        self::$mw_mysql_user = getenv('TOOL_REPLICA_USER');
-        self::$mw_mysql_pass = getenv('TOOL_REPLICA_PASSWORD');
+        if ($mw_mysql_user = getenv('TOOL_REPLICA_USER')) {
+            self::$mw_mysql_user = $mw_mysql_user;
+        }
+        if ($mw_mysql_pass = getenv('TOOL_REPLICA_PASSWORD')) {
+            self::$mw_mysql_pass = $mw_mysql_pass;
+        }
 
-        self::$cb_mysql_user = getenv('TOOL_TOOLSDB_USER');
-        self::$cb_mysql_pass = getenv('TOOL_TOOLSDB_PASSWORD');
+        if ($cb_mysql_user = getenv('TOOL_TOOLSDB_USER')) {
+            self::$cb_mysql_user = $cb_mysql_user;
+        }
+        if ($cb_mysql_pass = getenv('TOOL_TOOLSDB_PASSWORD')) {
+            self::$cb_mysql_pass = $cb_mysql_pass;
+        }
 
-        self::$cb_redis_pass = getenv('REDIS_PASSWORD');
+        if ($cb_redis_pass = getenv('REDIS_PASSWORD')) {
+            self::$cb_redis_pass = $cb_redis_pass;
+        }
 
         if ($mysql_credentials = getenv('CBNG_BOT_MYSQL_CREDENTIALS')) {
             self::$mw_mysql_credentials = json_decode($mysql_credentials, true);
+        }
+
+        if ($metrics_enabled = getenv('CBNG_METRICS_ENABLED')) {
+            self::$metrics_enabled = $metrics_enabled === 'true';
+        }
+
+        if ($port = getenv('CBNG_METRICS_PORT')) {
+            self::$metrics_port = (int) $port;
         }
     }
 }

@@ -48,4 +48,7 @@ require_once 'includes.php';
 });
 date_default_timezone_set('UTC');
 doInit();
+if (Config::$metrics_enabled) {
+    MetricServer::run();
+}
 HttpFeed::stream();

@@ -11,6 +11,7 @@ opcache.validate_timestamps=0
 opcache.file_cache=/tmp
 opcache.file_cache_only=0
 opcache.file_cache_consistency_checks=0
+zend.assertions=-1
 EOF
 
 # Launcher bot

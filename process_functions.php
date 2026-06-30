@@ -90,6 +90,7 @@ class Process
             }
             // Child
             $logger->debug("Fork started");
+            Metrics::reset();
         }
         $change = parseFeedData($change);
         if ($change !== null) {
