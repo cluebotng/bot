@@ -23,7 +23,7 @@ namespace CluebotNG;
 
 class Relay
 {
-    public static function publish($change, $score = null, $reverted = false, $comment = null)
+    public static function publishEdit($change, $score = null, $reverted = false, $comment = null)
     {
         self::send(json_encode([
             'change' => [

@@ -38,7 +38,7 @@ class Action
             if ($warning >= 4) {
                 /* Report them if they have been warned 4 times. */
                 $logger->info('Reporting ' . $change['user'] . ' to AIV', ['revision_id' => $change['revid']]);
-                Metrics::increment('bot_aiv_reports_total', 'Total AIV reports filed');
+                Metrics::increment('bot_aiv_reports_total');
                 self::aiv($change, $report);
             } else {
                 /* Warn them if they haven't been warned 4 times. */
@@ -46,12 +46,7 @@ class Action
                     'Warning ' . $change['user'] . ' with level ' . $warning,
                     ['revision_id' => $change['revid']]
                 );
-                Metrics::increment(
-                    'bot_warnings_issued_total',
-                    'Total warnings issued by level',
-                    ['level'],
-                    [(string)$warning]
-                );
+                Metrics::increment('bot_warnings_issued_total', [(string)$warning_level]);
                 self::warn($change, $report, $tpcontent, $warning);
             }
         }

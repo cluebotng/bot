@@ -27,7 +27,7 @@ class Process
     {
         global $logger;
 
-        Metrics::increment('bot_edits_received_total', 'Total edits received for processing');
+        Metrics::increment('bot_edits_received_total');
 
         // Reload config from our 'special' pages
         switch ($change['namespace'] . $change['title']) {
@@ -55,12 +55,7 @@ class Process
             )
         ) {
             $logger->debug('Skipping due to namespace', ['revision_id' => $change['revid']]);
-            Metrics::increment(
-                'bot_edits_skipped_namespace_total',
-                'Total edits skipped due to namespace',
-                ['namespace'],
-                [$change['namespace']]
-            );
+            Metrics::increment('bot_edits_skipped_namespace_total', [$change['namespace']]);
             return;
         }
 
@@ -82,10 +77,7 @@ class Process
         // Ignore new articles
         if (in_array('N', $change['flags'])) {
             $logger->info('Skipping: New article', ['revision_id' => $change['revid']]);
-            Metrics::increment(
-                'bot_edits_skipped_new_article_total',
-                'Total edits skipped because they are new articles'
-            );
+            Metrics::increment('bot_edits_skipped_new_article_total');
             return;
         }
 
@@ -98,7 +90,7 @@ class Process
             if ($pid != 0) {
                 // Parent
                 $logger->debug("Created fork with " . $pid);
-                Metrics::increment('bot_forks_started_total', 'Total child processes forked');
+                Metrics::increment('bot_forks_started_total');
                 return;
             }
             // Child
@@ -107,13 +99,13 @@ class Process
         }
         $change = parseFeedData($change);
         if ($change === null) {
-            Metrics::increment('bot_edits_skipped_parse_failed_total', 'Total edits skipped due to failed data fetch');
+            Metrics::increment('bot_edits_skipped_parse_failed_total');
         } else {
             self::processEditThread($change);
         }
         if (Config::$fork) {
             $logger->debug("Fork finished");
-            Metrics::increment('bot_forks_finished_total', 'Total child processes that completed successfully');
+            Metrics::increment('bot_forks_finished_total');
             // Avoid propagating shutdown signals from die() which cause curl's connection to get dropped
             posix_kill(posix_getpid(), SIGKILL);
         }
@@ -125,28 +117,25 @@ class Process
         $score = null;
         if (!array_key_exists('all', $change)) {
             $logger->debug('Skipping change as edit data is missing', ['revision_id' => $change['revid']]);
-            Metrics::increment('bot_edits_skipped_missing_data_total', 'Total edits skipped due to missing edit data');
+            Metrics::increment('bot_edits_skipped_missing_data_total');
             return;
         }
 
         if (!isVandalism($change['all'], $score)) {
             $logger->info('Skipping: Below threshold', ['revision_id' => $change['revid'], 'score' => $score]);
-            Metrics::increment('bot_edits_below_threshold_total', 'Total edits below the vandalism score threshold');
-            Relay::publish($change, $score, false, 'Below threshold');
+            Metrics::increment('bot_edits_below_threshold_total');
+            Relay::publishEdit($change, $score, false, 'Below threshold');
             return;
         }
 
         if (Action::isWhitelisted($change['user'])) {
             $logger->info('Skipping: User whitelisted', ['revision_id' => $change['revid'], 'score' => $score]);
-            Metrics::increment('bot_edits_whitelisted_total', 'Total edits skipped because the user is whitelisted');
-            Relay::publish($change, $score, false, 'User whitelisted');
+            Metrics::increment('bot_edits_whitelisted_total');
+            Relay::publishEdit($change, $score, false, 'User whitelisted');
             return;
         }
 
-        Metrics::increment(
-            'bot_edits_vandalism_detected_total',
-            'Total edits flagged as potential vandalism above threshold'
-        );
+        Metrics::increment('bot_edits_vandalism_detected_total');
 
         $reason = 'ANN scored at ' . $score;
         $heuristic = '';
@@ -172,19 +161,14 @@ class Process
             $change['revid']
         );
         list($shouldRevert, $revertReason) = Action::shouldRevert($change);
-        Metrics::increment(
-            'bot_revert_decisions_total',
-            'Total revert decisions made',
-            ['decision', 'reason'],
-            [$shouldRevert ? 'yes' : 'no', $revertReason]
-        );
+        Metrics::increment('bot_revert_decisions_total', [$shouldRevert ? 'yes' : 'no', $revertReason]);
         if ($shouldRevert) {
             $logger->info('Reverting: ' . $revertReason, ['revision_id' => $change['revid'], 'score' => $score]);
-            Metrics::increment('bot_reverts_attempted_total', 'Total revert attempts');
+            Metrics::increment('bot_reverts_attempted_total');
             $rbret = Action::doRevert($change);
             if ($rbret !== false) {
-                Metrics::increment('bot_reverts_succeeded_total', 'Total successful reverts');
-                Relay::publish($change, $score, true, $revertReason);
+                Metrics::increment('bot_reverts_succeeded_total');
+                Relay::publishEdit($change, $score, true, $revertReason);
                 Action::doWarn($change, $report);
                 Db::vandalismReverted($change['mysqlid']);
             } else {
@@ -194,14 +178,14 @@ class Process
                         'Revert Beaten By: ' . $rv2[0]['user'],
                         ['revision_id' => $change['revid'], 'score' => $score]
                     );
-                    Metrics::increment('bot_reverts_beaten_total', 'Total reverts beaten by another editor');
-                    Relay::publish($change, $score, false, 'Beaten by ' . $rv2[0]['user']);
+                    Metrics::increment('bot_reverts_beaten_total');
+                    Relay::publishEdit($change, $score, false, 'Beaten by ' . $rv2[0]['user']);
                     Db::vandalismRevertBeaten($change['mysqlid'], $change['title'], $rv2[0]['user'], $change['url']);
                 }
             }
         } else {
             $logger->info('Not Reverting: ' . $revertReason, ['revision_id' => $change['revid'], 'score' => $score]);
-            Relay::publish($change, $score, false, $revertReason);
+            Relay::publishEdit($change, $score, false, $revertReason);
         }
     }
 }
