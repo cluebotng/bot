@@ -84,8 +84,8 @@ function connect_to_mysql($exclude_users = [])
         );
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1226) {
-            $logger->warning("ran out of database connections for " . $mw_mysql_user);
-            usleep(10000);
+            $logger->debug("ran out of database connections for " . $mw_mysql_user);
+            usleep(5000);
             $exclude_users[] = $mw_mysql_user;
             return connect_to_mysql($exclude_users);
         }
