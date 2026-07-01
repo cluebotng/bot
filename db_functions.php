@@ -37,7 +37,9 @@ class Db
             '\'' . mysqli_real_escape_string(Globals::$cb_mysql, $url) . '\',' .
             '\'' . mysqli_real_escape_string(Globals::$cb_mysql, $old_rev_id) . '\',' .
             '\'' . mysqli_real_escape_string(Globals::$cb_mysql, $rev_id) . '\',0)';
-        mysqli_query(Globals::$cb_mysql, $query);
+        if (!mysqli_query(Globals::$cb_mysql, $query)) {
+            Metrics::increment('bot_mysql_cb_query_failures_total', ['vandalism_insert']);
+        }
 
         return mysqli_insert_id(Globals::$cb_mysql);
     }
@@ -46,28 +48,40 @@ class Db
     public static function vandalismReverted($edit_id)
     {
         checkMySQL();
-        mysqli_query(
-            Globals::$cb_mysql,
-            'UPDATE `vandalism` SET `reverted` = 1 WHERE `id` = \'' .
-            mysqli_real_escape_string(Globals::$cb_mysql, $edit_id) . '\''
-        );
+        if (
+            !mysqli_query(
+                Globals::$cb_mysql,
+                'UPDATE `vandalism` SET `reverted` = 1 WHERE `id` = \'' .
+                mysqli_real_escape_string(Globals::$cb_mysql, $edit_id) . '\''
+            )
+        ) {
+            Metrics::increment('bot_mysql_cb_query_failures_total', ['vandalism_update_reverted']);
+        }
     }
 
     // Returns nothing
     public static function vandalismRevertBeaten($edit_id, $title, $user, $diff)
     {
         checkMySQL();
-        mysqli_query(
-            Globals::$cb_mysql,
-            'UPDATE `vandalism` SET `reverted` = 0 WHERE `id` = \'' .
-            mysqli_real_escape_string(Globals::$cb_mysql, $edit_id) . '\''
-        );
-        mysqli_query(
-            Globals::$cb_mysql,
-            'INSERT INTO `beaten` (`id`,`article`,`diff`,`user`) VALUES (NULL,\'' .
-            mysqli_real_escape_string(Globals::$cb_mysql, $title) . '\',\'' .
-            mysqli_real_escape_string(Globals::$cb_mysql, $diff) . '\',\'' .
-            mysqli_real_escape_string(Globals::$cb_mysql, $user) . '\')'
-        );
+        if (
+            !mysqli_query(
+                Globals::$cb_mysql,
+                'UPDATE `vandalism` SET `reverted` = 0 WHERE `id` = \'' .
+                mysqli_real_escape_string(Globals::$cb_mysql, $edit_id) . '\''
+            )
+        ) {
+            Metrics::increment('bot_mysql_cb_query_failures_total', ['vandalism_update_beaten']);
+        }
+        if (
+            !mysqli_query(
+                Globals::$cb_mysql,
+                'INSERT INTO `beaten` (`id`,`article`,`diff`,`user`) VALUES (NULL,\'' .
+                mysqli_real_escape_string(Globals::$cb_mysql, $title) . '\',\'' .
+                mysqli_real_escape_string(Globals::$cb_mysql, $diff) . '\',\'' .
+                mysqli_real_escape_string(Globals::$cb_mysql, $user) . '\')'
+            )
+        ) {
+            Metrics::increment('bot_mysql_cb_query_failures_total', ['beaten_insert']);
+        }
     }
 }

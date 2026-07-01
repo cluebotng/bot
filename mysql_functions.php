@@ -42,6 +42,7 @@ function checkMySQL()
             Config::$cb_mysql_port
         );
         if (!Globals::$cb_mysql) {
+            Metrics::increment('bot_mysql_cb_connection_failures_total');
             die('cb mysql error: ' . mysqli_connect_error());
         }
         mysqli_select_db(Globals::$cb_mysql, Config::$cb_mysql_db);
@@ -59,6 +60,7 @@ function connect_to_mysql($exclude_users = [])
         );
         if (empty($candidate_credentials)) {
             $logger->error("ran out of database credentials");
+            Metrics::increment('bot_mysql_mw_credentials_exhausted_total');
             die();
         }
         $selected = $candidate_credentials[array_rand($candidate_credentials)];
@@ -85,6 +87,8 @@ function connect_to_mysql($exclude_users = [])
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1226) {
             $logger->debug("ran out of database connections for " . $mw_mysql_user);
+            Metrics::increment('bot_mysql_mw_credential_conn_limit_total', [$mw_mysql_user]);
+            Metrics::increment('bot_mysql_mw_connection_retries_total');
             usleep(5000);
             $exclude_users[] = $mw_mysql_user;
             return connect_to_mysql($exclude_users);
@@ -133,6 +137,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         if ($res === false) {
             $logger->warning("page metadata query returned no data for " . $title .
                                 " (" . $nsid . "): " . mysqli_error($mw_mysql));
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['page_metadata', 'no_data']);
         } else {
             $d = mysqli_fetch_assoc($res);
             $data['common']['page_made_time'] = $d['rev_timestamp'];
@@ -141,9 +146,11 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
             $logger->warning("page metadata query timed out for " . $title . " (" . $nsid . ")");
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['page_metadata', 'timeout']);
         } else {
             $logger->error("page metadata query returned an error for " . $title .
                               " (" . $nsid . "): " . $e->getMessage());
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['page_metadata', 'error']);
         }
     }
 
@@ -163,6 +170,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         if ($res === false) {
             $logger->warning("page recent edits query returned no data for " . $title .
                                 " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['page_recent_edits', 'no_data']);
         } else {
             $d = mysqli_fetch_assoc($res);
             $data['common']['num_recent_edits'] = $d['count'];
@@ -171,9 +179,11 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         if ($e->getCode() == 1969) {
             $logger->warning("page recent edits query timed out for " . $title . " (" . $nsid . ") > " .
                                 $timestamp);
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['page_recent_edits', 'timeout']);
         } else {
             $logger->error("page recent edits query returned an error for " . $title .
                               " (" . $nsid . ") > " . $timestamp . ": " . $e->getMessage());
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['page_recent_edits', 'error']);
         }
     }
 
@@ -196,6 +206,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         if ($res === false) {
             $logger->warning("page recent reverts query returned no data for " . $title .
                                 " (" . $nsid . ") > " . $timestamp . ": " . mysqli_error($mw_mysql));
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['page_recent_reverts', 'no_data']);
         } else {
             $d = mysqli_fetch_assoc($res);
             $data['common']['num_recent_reversions'] = $d['count'];
@@ -204,9 +215,11 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         if ($e->getCode() == 1969) {
             $logger->warning("page recent reverts query timed out for " . $title .
                                 " (" . $nsid . ") > " . $timestamp);
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['page_recent_reverts', 'timeout']);
         } else {
             $logger->error("page recent reverts query returned an error for " . $title .
                               " (" . $nsid . ") > " . $timestamp . ": " . $e->getMessage());
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['page_recent_reverts', 'error']);
         }
     }
 
@@ -229,6 +242,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             if ($res === false) {
                 $logger->warning("user edit count query returned no data for (invalid ip) " .
                                     $user . ": " . mysqli_error($mw_mysql));
+                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'no_data']);
             } else {
                 $d = mysqli_fetch_assoc($res);
                 $data['user_edit_count'] = $d['user_editcount'];
@@ -236,9 +250,11 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         } catch (mysqli_sql_exception $e) {
             if ($e->getCode() == 1969) {
                 $logger->warning("user edit count query timed out for " . $user);
+                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'timeout']);
             } else {
                 $logger->error("user edit count query returned an error for " . $user . ": " .
                                   $e->getMessage());
+                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'error']);
             }
         }
     } else {
@@ -253,6 +269,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             if ($res === false) {
                 $logger->warning("user registration query returned no data for " .
                                     $user . ": " . mysqli_error($mw_mysql));
+                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_registration', 'no_data']);
             } else {
                 $d = mysqli_fetch_assoc($res);
                 $data['user_reg_time'] = $d['user_registration'];
@@ -260,9 +277,11 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         } catch (mysqli_sql_exception $e) {
             if ($e->getCode() == 1969) {
                 $logger->warning("user registration query timed out for " . $user);
+                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_registration', 'timeout']);
             } else {
                 $logger->error("user registration query returned an error for " . $user . ": " .
                                   $e->getMessage());
+                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_registration', 'error']);
             }
         }
 
@@ -280,6 +299,10 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
                 if ($res === false) {
                     $logger->warning("user registration via revision query returned no data for " .
                                         $user . ": " . mysqli_error($mw_mysql));
+                    Metrics::increment(
+                        'bot_mysql_mw_query_failures_total',
+                        ['user_registration_via_revision', 'no_data']
+                    );
                 } else {
                     $d = mysqli_fetch_assoc($res);
                     $data['user_reg_time'] = $d['rev_timestamp'];
@@ -287,9 +310,17 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             } catch (mysqli_sql_exception $e) {
                 if ($e->getCode() == 1969) {
                     $logger->warning("user registration via revision query timed out for " . $user);
+                    Metrics::increment(
+                        'bot_mysql_mw_query_failures_total',
+                        ['user_registration_via_revision', 'timeout']
+                    );
                 } else {
                     $logger->error("user registration via revision query returned an error for " . $user .
                                       ": " . $e->getMessage());
+                    Metrics::increment(
+                        'bot_mysql_mw_query_failures_total',
+                        ['user_registration_via_revision', 'error']
+                    );
                 }
             }
         }
@@ -305,6 +336,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             if ($res === false) {
                 $logger->warning("user edit count query returned no data for " .
                                     $user . ": " . mysqli_error($mw_mysql));
+                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'no_data']);
             } else {
                 $d = mysqli_fetch_assoc($res);
                 $data['user_edit_count'] = $d['user_editcount'];
@@ -312,9 +344,11 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         } catch (mysqli_sql_exception $e) {
             if ($e->getCode() == 1969) {
                 $logger->warning("user edit count query timed out for " . $user);
+                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'timeout']);
             } else {
                 $logger->error("user edit count query returned an error for " . $user . ": " .
                                   $e->getMessage());
+                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'error']);
             }
         }
     }
@@ -335,6 +369,7 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         if ($res === false) {
             $logger->warning("user warnings count query returned no data for " .
                                 $userPage . ": " . mysqli_error($mw_mysql));
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['user_warnings_count', 'no_data']);
         } else {
             $d = mysqli_fetch_assoc($res);
             $data['user_warns'] = $d['count'];
@@ -342,9 +377,11 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
             $logger->warning("user warnings count query timed out for " . $user);
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['user_warnings_count', 'timeout']);
         } else {
             $logger->error("user warnings count query returned an error for " . $user . ": " .
                               $e->getMessage());
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['user_warnings_count', 'error']);
         }
     }
 
@@ -364,9 +401,11 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
             $logger->warning("user distinct page edits query timed out for " . $userPage);
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['user_distinct_pages', 'timeout']);
         } else {
             $logger->error("user distinct page edits query returned an error for " . $userPage .
                               ": " . $e->getMessage());
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['user_distinct_pages', 'error']);
         }
     }
     if ($data['common']['page_made_time']) {
