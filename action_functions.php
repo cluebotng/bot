@@ -33,9 +33,9 @@ class Action
     public static function doWarn($change, $report)
     {
         global $logger;
-        $warning = self::getWarningLevel($change['user'], $tpcontent) + 1;
+        $warning_level = self::getWarningLevel($change['user'], $tpcontent) + 1;
         if (!Config::$dry) {
-            if ($warning >= 4) {
+            if ($warning_level >= 4) {
                 /* Report them if they have been warned 4 times. */
                 $logger->info('Reporting ' . $change['user'] . ' to AIV', ['revision_id' => $change['revid']]);
                 Metrics::increment('bot_aiv_reports_total');
@@ -43,11 +43,12 @@ class Action
             } else {
                 /* Warn them if they haven't been warned 4 times. */
                 $logger->info(
-                    'Warning ' . $change['user'] . ' with level ' . $warning,
+                    'Warning ' . $change['user'] . ' with level ' . $warning_level,
                     ['revision_id' => $change['revid']]
                 );
                 Metrics::increment('bot_warnings_issued_total', [(string)$warning_level]);
-                self::warn($change, $report, $tpcontent, $warning);
+                self::warn($change, $report, $tpcontent, $warning_level);
+                Relay::publishWarnedUser($change['user'], $warning_level);
             }
         }
     }

@@ -42,6 +42,11 @@ class Relay
         ]));
     }
 
+    public static function publishWarnedUser($username, $level)
+    {
+        self::send(json_encode(['username' => $username, 'level' => $level]));
+    }
+
     private static function send($payload)
     {
         global $logger;
