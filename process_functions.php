@@ -33,7 +33,7 @@ class Process
         switch ($change['namespace'] . $change['title']) {
             case 'User:' . Config::$user . '/Run':
                 $logger->info('Reloading /Run', ['revision_id' => $change['revid']]);
-                Globals::$run = Api::$q->getpage('User:' . Config::$user . '/Run');
+                refreshRunFlag();
                 break;
             case 'User:' . Config::$user . '/Optin':
                 $logger->info('Reloading /Optin', ['revision_id' => $change['revid']]);

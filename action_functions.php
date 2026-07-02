@@ -166,7 +166,7 @@ class Action
                 return [false, 'Manual mode says no'];
             }
         }
-        if (!preg_match('/(yes|enable|true)/iS', Globals::$run)) {
+        if (!Globals::$run) {
             return [false, 'Run disabled'];
         }
         if ($change['user'] == Config::$user) {

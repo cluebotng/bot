@@ -44,6 +44,12 @@ function refreshDataTick()
     }
 }
 
+function refreshRunFlag()
+{
+    Globals::$run = preg_match('/(yes|enable|true)/iS', Api::$q->getpage('User:' . Config::$user . '/Run'));
+    Metrics::set('bot_run_enabled', Globals::$run ? 1.0 : 0.0);
+}
+
 function loadHuggleWhitelist()
 {
     global $logger;
@@ -71,8 +77,9 @@ function doInit()
     Globals::$atime = time();
     Globals::$tfas = 0;
     Globals::$stdin = fopen('php://stdin', 'r');
-    Globals::$run = Api::$q->getpage('User:' . Config::$user . '/Run');
     Globals::$optin = Api::$q->getpage('User:' . Config::$user . '/Optin');
     Globals::$aoptin = Api::$q->getpage('User:' . Config::$user . '/AngryOptin');
+
+    refreshRunFlag();
     refreshDataTick();
 }
