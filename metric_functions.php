@@ -78,8 +78,13 @@ class Metrics
             []
         );
         self::registerCounter(
-            'bot_edits_skipped_parse_failed_total',
-            'Total edits skipped due to failed data fetch',
+            'bot_edits_skipped_missing_revision_data_total',
+            'Total edits skipped due to failed revision data fetch',
+            []
+        );
+        self::registerCounter(
+            'bot_edits_skipped_missing_cb_data_total',
+            'Total edits skipped due to failed cluebot data fetch',
             []
         );
         self::registerCounter(

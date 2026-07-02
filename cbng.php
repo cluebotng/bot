@@ -103,6 +103,7 @@ function parseFeedData($feedData)
         and isset($api['revisions'][1]['*']))
     ) {
         $logger->warning("Failed to get revision info", ['revision_id' => $feedData['revid']]);
+        Metrics::increment('bot_edits_skipped_missing_revision_data_total');
         return null;
     }
 
@@ -119,6 +120,7 @@ function parseFeedData($feedData)
         and isset($cb['user_reg_time']))
     ) {
         $logger->warning("Failed to get user info", ['revision_id' => $feedData['revid']]);
+        Metrics::increment('bot_edits_skipped_missing_cb_data_total');
         return null;
     }
     if (
@@ -131,7 +133,7 @@ function parseFeedData($feedData)
         return null;
     }
 
-    $data = [
+    $feedData['all'] = [
         'EditType' => 'change',
         'EditID' => $feedData['revid'],
         'comment' => $feedData['comment'],
@@ -159,8 +161,6 @@ function parseFeedData($feedData)
             'text' => $api['revisions'][1]['*'],
         ],
     ];
-
-    $feedData['all'] = $data;
 
     return $feedData;
 }
