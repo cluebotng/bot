@@ -174,6 +174,11 @@ class Metrics
             'Current number of entries in the huggle whitelist',
             []
         );
+        self::registerGauge(
+            'bot_run_enabled',
+            'Whether the bot run flag is currently enabled (1) or disabled (0)',
+            []
+        );
     }
 
     private static function registerCounter(string $name, string $help, array $labelNames): void
