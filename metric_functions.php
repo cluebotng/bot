@@ -184,6 +184,16 @@ class Metrics
             'Whether the bot run flag is currently enabled (1) or disabled (0)',
             []
         );
+        self::registerGauge(
+            'bot_last_contribution_seconds',
+            'Unix timestamp of the last bot contribution',
+            []
+        );
+        self::registerGauge(
+            'bot_start_time_seconds',
+            'Unix timestamp of the bot process start time',
+            []
+        );
     }
 
     private static function registerCounter(string $name, string $help, array $labelNames): void
