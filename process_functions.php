@@ -99,7 +99,7 @@ class Process
         }
         $change = parseFeedData($change);
         if ($change === null) {
-            Metrics::increment('bot_edits_skipped_parse_failed_total');
+            Metrics::increment('bot_edits_skipped_missing_data_total');
         } else {
             self::processEditThread($change);
         }
@@ -115,11 +115,6 @@ class Process
     {
         global $logger;
         $score = null;
-        if (!array_key_exists('all', $change)) {
-            $logger->debug('Skipping change as edit data is missing', ['revision_id' => $change['revid']]);
-            Metrics::increment('bot_edits_skipped_missing_data_total');
-            return;
-        }
 
         if (!isVandalism($change['all'], $score)) {
             $logger->info('Skipping: Below threshold', ['revision_id' => $change['revid'], 'score' => $score]);
