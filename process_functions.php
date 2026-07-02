@@ -95,6 +95,7 @@ class Process
             }
             // Child
             $logger->debug("Fork started");
+            mt_srand();
             Metrics::reset();
         }
         $change = parseFeedData($change);
