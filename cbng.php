@@ -193,5 +193,6 @@ function isVandalism($data, &$score)
         $isVand = ((string)$data->WPEdit->think_vandalism) == 'true';
     }
 
+    Metrics::observe('bot_edit_score', (float)$score);
     return $isVand;
 }

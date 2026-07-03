@@ -195,6 +195,15 @@ class Metrics
             []
         );
 
+        // Histograms
+        self::registerHistogram(
+            'bot_edit_score',
+            'Distribution of ANN vandalism scores per edit',
+            [],
+            [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50,
+             0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00]
+        );
+
         if ($seedMetrics) {
             self::seedMetrics();
         }
@@ -235,6 +244,16 @@ class Metrics
     private static function registerGauge(string $name, string $help, array $labelNames): void
     {
         self::$definitions[$name] = ['type' => 'gauge', 'help' => $help, 'labels' => $labelNames];
+    }
+
+    private static function registerHistogram(string $name, string $help, array $labelNames, array $buckets): void
+    {
+        self::$definitions[$name] = [
+            'type' => 'histogram',
+            'help' => $help,
+            'labels' => $labelNames,
+            'buckets' => $buckets
+        ];
     }
 
     private static function registry(): CollectorRegistry
@@ -300,6 +319,33 @@ class Metrics
         } catch (\Throwable $e) {
             self::$registry = null;
             $logger->warning('Failed to set metric: ' . $e->getMessage());
+        }
+    }
+
+    public static function observe(string $name, float $value, array $labelValues = []): void
+    {
+        global $logger;
+        if (!Config::$metrics_enabled) {
+            return;
+        }
+        $definition = self::$definitions[$name] ?? null;
+        if ($definition === null) {
+            $logger->warning("Unknown metric: $name");
+            return;
+        }
+        try {
+            self::registry()
+                ->getOrRegisterHistogram(
+                    'cbng',
+                    $name,
+                    $definition['help'],
+                    $definition['labels'],
+                    $definition['buckets']
+                )
+                ->observe($value, $labelValues);
+        } catch (\Throwable $e) {
+            self::$registry = null;
+            $logger->warning('Failed to observe metric: ' . $e->getMessage());
         }
     }
 }
