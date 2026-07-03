@@ -29,7 +29,7 @@ class Metrics
     private static ?CollectorRegistry $registry = null;
     private static array $definitions = [];
 
-    public static function init(): void
+    public static function init($seedMetrics = true): void
     {
         // Counters
         self::registerCounter(
@@ -195,7 +195,9 @@ class Metrics
             []
         );
 
-        self::seedMetrics();
+        if ($seedMetrics) {
+            self::seedMetrics();
+        }
     }
 
     private static function seedMetrics(): void

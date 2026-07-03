@@ -34,7 +34,7 @@ namespace CluebotNG;
 
  /* Configure API access */
 Config::init();
-Metrics::init();
+Metrics::init(false);
 Api::init($logger);
 
 /* Get container start time */
