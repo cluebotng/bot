@@ -194,6 +194,35 @@ class Metrics
             'Unix timestamp of the bot process start time',
             []
         );
+
+        self::seedMetrics();
+    }
+
+    private static function seedMetrics(): void
+    {
+        global $logger;
+        if (!Config::$metrics_enabled) {
+            return;
+        }
+        foreach (self::$definitions as $metric_name => $definition) {
+            if (!empty($definition['labels'])) {
+                continue;
+            }
+            try {
+                if ($definition['type'] === 'counter') {
+                    self::registry()
+                        ->getOrRegisterCounter('cbng', $metric_name, $definition['help'], $definition['labels'])
+                        ->incBy([], 0);
+                } elseif ($definition['type'] === 'gauge') {
+                    self::registry()
+                        ->getOrRegisterGauge('cbng', $metric_name, $definition['help'], $definition['labels'])
+                        ->set(0, []);
+                }
+            } catch (\Throwable $e) {
+                self::$registry = null;
+                $logger->debug('Failed to seed ' . $metric_name . ': ' . $e->getMessage());
+            }
+        }
     }
 
     private static function registerCounter(string $name, string $help, array $labelNames): void
@@ -243,7 +272,7 @@ class Metrics
         }
         try {
             self::registry()
-                ->getOrRegisterCounter('cbng', $name, $def['help'], $def['labels'])
+                ->getOrRegisterCounter('cbng', $name, $definition['help'], $definition['labels'])
                 ->inc($labelValues);
         } catch (\Throwable $e) {
             self::$registry = null;
@@ -264,7 +293,7 @@ class Metrics
         }
         try {
             self::registry()
-                ->getOrRegisterGauge('cbng', $name, $def['help'], $def['labels'])
+                ->getOrRegisterGauge('cbng', $name, $definition['help'], $definition['labels'])
                 ->set($value, $labelValues);
         } catch (\Throwable $e) {
             self::$registry = null;
