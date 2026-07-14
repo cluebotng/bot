@@ -68,16 +68,6 @@ class Metrics
             []
         );
         self::registerCounter(
-            'bot_forks_started_total',
-            'Total child processes forked',
-            []
-        );
-        self::registerCounter(
-            'bot_forks_finished_total',
-            'Total child processes that completed successfully',
-            []
-        );
-        self::registerCounter(
             'bot_edits_skipped_missing_revision_data_total',
             'Total edits skipped due to failed revision data fetch',
             []
@@ -192,6 +182,11 @@ class Metrics
         self::registerGauge(
             'bot_start_time_seconds',
             'Unix timestamp of the bot process start time',
+            []
+        );
+        self::registerGauge(
+            'bot_forks_total',
+            'Current number of active forked child processes',
             []
         );
 

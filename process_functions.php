@@ -90,7 +90,8 @@ class Process
             if ($pid != 0) {
                 // Parent
                 $logger->debug("Created fork with " . $pid);
-                Metrics::increment('bot_forks_started_total');
+                Globals::$activeChildren[$pid] = true;
+                Metrics::set('bot_forks_total', count(Globals::$activeChildren));
                 return;
             }
             // Child
@@ -106,7 +107,6 @@ class Process
         }
         if (Config::$fork) {
             $logger->debug("Fork finished");
-            Metrics::increment('bot_forks_finished_total');
             // Avoid propagating shutdown signals from die() which cause curl's connection to get dropped
             posix_kill(posix_getpid(), SIGKILL);
         }
