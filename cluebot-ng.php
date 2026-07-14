@@ -29,6 +29,8 @@ require_once 'includes.php';
         if ($x == 0) {
             break;
         }
+        unset(Globals::$activeChildren[$x]);
+        Metrics::set('bot_forks_total', count(Globals::$activeChildren));
         if (\pcntl_wifsignaled($status)) {
             $sig = \pcntl_wtermsig($status);
             if ($sig !== SIGKILL) {

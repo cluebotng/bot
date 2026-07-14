@@ -33,4 +33,5 @@ class Globals
     public static $optin;
     public static $atime;
     public static $huggle_wl_reload_time;
+    public static $activeChildren = [];
 }
