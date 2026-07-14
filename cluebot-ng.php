@@ -44,9 +44,26 @@ require_once 'includes.php';
         }
     }
 });
+
+$shutdownHandler = function ($signo) {
+    global $logger;
+    $logger->info('Received shutdown signal ' . $signo . ', beginning graceful shutdown');
+    HttpFeed::shutdown();
+};
+\pcntl_signal(SIGTERM, $shutdownHandler);
+\pcntl_signal(SIGINT, $shutdownHandler);
+
 date_default_timezone_set('UTC');
 doInit();
 if (Config::$metrics_enabled) {
     MetricServer::run();
 }
 HttpFeed::stream();
+
+$logger->info('Waiting for ' . count(Globals::$activeChildren) . ' workers to finish');
+while (!empty(Globals::$activeChildren)) {
+    usleep(100000);
+}
+
+$logger->info('Shutdown complete, exiting');
+exit(0);
