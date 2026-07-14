@@ -26,6 +26,8 @@ class HttpFeed
     private static $buffer = '';
     private static $lastEventId = null;
     private static $queue = [];
+    private static $running = true;
+    private static $lastCheckpointTime = 0;
 
     public static function stream()
     {
@@ -37,15 +39,37 @@ class HttpFeed
         }
 
         $recentAttempts = 0;
-        for (;;) {
+        while (self::$running) {
             $recentAttempts++;
             $uptime = self::connect();
+            if (!self::$running) {
+                break;
+            }
             if ($uptime > 60) {
                 $recentAttempts = 0;
             }
             $backoff = min($recentAttempts * 2, 120);
             $logger->info("EventStream disconnected, reconnecting in {$backoff}s");
             sleep($backoff);
+        }
+
+        $logger->info('EventStream stopped');
+    }
+
+    public static function shutdown()
+    {
+        global $logger;
+
+        if (!self::$running) {
+            return;
+        }
+
+        $logger->info('HttpFeed shutting down, no longer processing new events');
+        self::$running = false;
+
+        if (self::$lastEventId !== null) {
+            KeyValueStore::saveLastHttpEventId(self::$lastEventId);
+            $logger->info('Persisted last event id on shutdown: ' . self::$lastEventId);
         }
     }
 
@@ -84,11 +108,12 @@ class HttpFeed
                 self::process($event);
             }
 
-            if (self::$lastEventId !== null) {
+            if (self::$lastEventId !== null && (time() - self::$lastCheckpointTime) >= 300) {
                 KeyValueStore::saveLastHttpEventId(self::$lastEventId);
+                self::$lastCheckpointTime = time();
             }
             refreshDataTick();
-        } while ($running > 0);
+        } while ($running > 0 && self::$running);
 
         $info = curl_multi_info_read($mh);
         if ($info !== false && $info['result'] !== CURLE_OK) {
