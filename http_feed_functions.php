@@ -39,9 +39,10 @@ class HttpFeed
         }
 
         $recentAttempts = 0;
+        $server_enforced_timeout = false;
         while (self::$running) {
             $recentAttempts++;
-            $uptime = self::connect();
+            [$uptime, $server_enforced_timeout] = self::connect($server_enforced_timeout);
             if (!self::$running) {
                 break;
             }
@@ -73,7 +74,7 @@ class HttpFeed
         }
     }
 
-    private static function connect()
+    private static function connect($quiet = false)
     {
         global $logger;
 
@@ -97,8 +98,9 @@ class HttpFeed
         $mh = curl_multi_init();
         curl_multi_add_handle($mh, $ch);
 
-        $logger->info('Connecting to EventStream');
-        $start = time();
+        $log_message = 'Connecting to EventStream';
+        $quiet ? $logger->debug($log_message) : $logger->info($log_message);
+        $start_time = time();
 
         do {
             curl_multi_exec($mh, $running);
@@ -115,15 +117,26 @@ class HttpFeed
             refreshDataTick();
         } while ($running > 0 && self::$running);
 
+        $uptime = time() - $start_time;
+        $server_enforced_timeout = false;
+
         $info = curl_multi_info_read($mh);
         if ($info !== false && $info['result'] !== CURLE_OK) {
-            $logger->error('EventStream hit curl error: ' . curl_strerror($info['result']));
+            $log_message = 'EventStream hit curl error: ' . curl_strerror($info['result']);
+            // CURLE_HTTP2_STREAM - the server will close the connection after 15min.
+            // x-ref: https://wikitech.wikimedia.org/wiki/Event_Platform/EventStreams_HTTP_Service
+            if ($info['result'] === 92 && $uptime > 720) {
+                $logger->debug($log_message);
+                $server_enforced_timeout = true;
+            } else {
+                $logger->error($log_message);
+            }
         }
 
         curl_multi_remove_handle($mh, $ch);
         curl_multi_close($mh);
 
-        return time() - $start;
+        return [$uptime, $server_enforced_timeout];
     }
 
     private static function processChunk($ch, $chunk)
