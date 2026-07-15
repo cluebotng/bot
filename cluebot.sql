@@ -24,7 +24,7 @@ CREATE TABLE `beaten` (
   `diff` varchar(512) NOT NULL,
   `user` varchar(256) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 --
 -- Table structure for table `trr`
 --
@@ -56,7 +56,7 @@ CREATE TABLE `vandalism` (
   `new_id` int(11) NOT NULL,
   `reverted` tinyint(1) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
