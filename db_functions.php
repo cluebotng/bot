@@ -2,6 +2,8 @@
 
 namespace CluebotNG;
 
+use mysqli_sql_exception;
+
 /*
  * Copyright (C) 2015 Jacobi Carter and Chris Breneman
  *
@@ -26,6 +28,7 @@ class Db
     // Returns the edit id for the vandalism
     public static function detectedVandalism($user, $title, $heuristic, $reason, $url, $old_rev_id, $rev_id)
     {
+        global $logger;
         checkMySQL();
         $query = 'INSERT INTO `vandalism` ' .
             '(`id`,`user`,`article`,`heuristic`,`reason`,`diff`,`old_id`,`new_id`,`reverted`) ' .
@@ -37,7 +40,12 @@ class Db
             '\'' . mysqli_real_escape_string(Globals::$cb_mysql, $url) . '\',' .
             '\'' . mysqli_real_escape_string(Globals::$cb_mysql, $old_rev_id) . '\',' .
             '\'' . mysqli_real_escape_string(Globals::$cb_mysql, $rev_id) . '\',0)';
-        if (!mysqli_query(Globals::$cb_mysql, $query)) {
+        try {
+            if (!mysqli_query(Globals::$cb_mysql, $query)) {
+                Metrics::increment('bot_mysql_cb_query_failures_total', ['vandalism_insert']);
+            }
+        } catch (mysqli_sql_exception $e) {
+            $logger->error("vandalism insert query returned an error for " . $title . ": " . $e->getMessage());
             Metrics::increment('bot_mysql_cb_query_failures_total', ['vandalism_insert']);
         }
 
@@ -47,14 +55,21 @@ class Db
     // Returns nothing
     public static function vandalismReverted($edit_id)
     {
+        global $logger;
         checkMySQL();
-        if (
-            !mysqli_query(
-                Globals::$cb_mysql,
-                'UPDATE `vandalism` SET `reverted` = 1 WHERE `id` = \'' .
-                mysqli_real_escape_string(Globals::$cb_mysql, $edit_id) . '\''
-            )
-        ) {
+        try {
+            if (
+                !mysqli_query(
+                    Globals::$cb_mysql,
+                    'UPDATE `vandalism` SET `reverted` = 1 WHERE `id` = \'' .
+                    mysqli_real_escape_string(Globals::$cb_mysql, $edit_id) . '\''
+                )
+            ) {
+                Metrics::increment('bot_mysql_cb_query_failures_total', ['vandalism_update_reverted']);
+            }
+        } catch (mysqli_sql_exception $e) {
+            $logger->error("vandalism update (reverted) query returned an error for " . $edit_id .
+                              ": " . $e->getMessage());
             Metrics::increment('bot_mysql_cb_query_failures_total', ['vandalism_update_reverted']);
         }
     }
@@ -62,25 +77,37 @@ class Db
     // Returns nothing
     public static function vandalismRevertBeaten($edit_id, $title, $user, $diff)
     {
+        global $logger;
         checkMySQL();
-        if (
-            !mysqli_query(
-                Globals::$cb_mysql,
-                'UPDATE `vandalism` SET `reverted` = 0 WHERE `id` = \'' .
-                mysqli_real_escape_string(Globals::$cb_mysql, $edit_id) . '\''
-            )
-        ) {
+        try {
+            if (
+                !mysqli_query(
+                    Globals::$cb_mysql,
+                    'UPDATE `vandalism` SET `reverted` = 0 WHERE `id` = \'' .
+                    mysqli_real_escape_string(Globals::$cb_mysql, $edit_id) . '\''
+                )
+            ) {
+                Metrics::increment('bot_mysql_cb_query_failures_total', ['vandalism_update_beaten']);
+            }
+        } catch (mysqli_sql_exception $e) {
+            $logger->error("vandalism update (beaten) query returned an error for " . $edit_id .
+                              ": " . $e->getMessage());
             Metrics::increment('bot_mysql_cb_query_failures_total', ['vandalism_update_beaten']);
         }
-        if (
-            !mysqli_query(
-                Globals::$cb_mysql,
-                'INSERT INTO `beaten` (`id`,`article`,`diff`,`user`) VALUES (NULL,\'' .
-                mysqli_real_escape_string(Globals::$cb_mysql, $title) . '\',\'' .
-                mysqli_real_escape_string(Globals::$cb_mysql, $diff) . '\',\'' .
-                mysqli_real_escape_string(Globals::$cb_mysql, $user) . '\')'
-            )
-        ) {
+        try {
+            if (
+                !mysqli_query(
+                    Globals::$cb_mysql,
+                    'INSERT INTO `beaten` (`id`,`article`,`diff`,`user`) VALUES (NULL,\'' .
+                    mysqli_real_escape_string(Globals::$cb_mysql, $title) . '\',\'' .
+                    mysqli_real_escape_string(Globals::$cb_mysql, $diff) . '\',\'' .
+                    mysqli_real_escape_string(Globals::$cb_mysql, $user) . '\')'
+                )
+            ) {
+                Metrics::increment('bot_mysql_cb_query_failures_total', ['beaten_insert']);
+            }
+        } catch (mysqli_sql_exception $e) {
+            $logger->error("beaten insert query returned an error for " . $title . ": " . $e->getMessage());
             Metrics::increment('bot_mysql_cb_query_failures_total', ['beaten_insert']);
         }
     }
