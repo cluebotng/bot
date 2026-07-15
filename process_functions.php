@@ -159,7 +159,7 @@ class Process
         list($shouldRevert, $revertReason) = Action::shouldRevert($change);
         Metrics::increment('bot_revert_decisions_total', [$shouldRevert ? 'yes' : 'no', $revertReason]);
         if ($shouldRevert) {
-            $logger->info('Reverting: ' . $revertReason, ['revision_id' => $change['revid'], 'score' => $score]);
+            $logger->notice('Reverting: ' . $revertReason, ['revision_id' => $change['revid'], 'score' => $score]);
             Metrics::increment('bot_reverts_attempted_total');
             $rbret = Action::doRevert($change);
             if ($rbret !== false) {
@@ -170,7 +170,7 @@ class Process
             } else {
                 $rv2 = Api::$a->revisions($change['title'], 1);
                 if (!empty($rv2) && $change['user'] != $rv2[0]['user']) {
-                    $logger->info(
+                    $logger->notice(
                         'Revert Beaten By: ' . $rv2[0]['user'],
                         ['revision_id' => $change['revid'], 'score' => $score]
                     );
@@ -180,7 +180,7 @@ class Process
                 }
             }
         } else {
-            $logger->info('Not Reverting: ' . $revertReason, ['revision_id' => $change['revid'], 'score' => $score]);
+            $logger->notice('Not Reverting: ' . $revertReason, ['revision_id' => $change['revid'], 'score' => $score]);
             Relay::publishEdit($change, $score, false, $revertReason);
         }
     }
