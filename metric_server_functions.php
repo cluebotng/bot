@@ -73,6 +73,7 @@ class MetricServer
         }
 
         // Child process
+        Metrics::reset();
         $requestHandler = new class () implements RequestHandler {
             public function handleRequest(Request $request): Response
             {
