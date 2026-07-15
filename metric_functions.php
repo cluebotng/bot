@@ -224,7 +224,7 @@ class Metrics
                 if ($definition['type'] === 'counter') {
                     self::registry()
                         ->getOrRegisterCounter('cbng', $metric_name, $definition['help'], $definition['labels'])
-                        ->incBy([], 0);
+                        ->incBy(0, []);
                 } elseif ($definition['type'] === 'gauge') {
                     self::registry()
                         ->getOrRegisterGauge('cbng', $metric_name, $definition['help'], $definition['labels'])
