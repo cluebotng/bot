@@ -200,15 +200,21 @@ class Metrics
         );
 
         if ($seedMetrics) {
-            self::seedMetrics();
+            self::seedMetricsStore();
         }
     }
 
-    private static function seedMetrics(): void
+    private static function seedMetricsStore(): void
     {
         global $logger;
         if (!Config::$metrics_enabled) {
             return;
+        }
+        try {
+            self::registry()->wipeStorage();
+        } catch (\Throwable $e) {
+            self::$registry = null;
+            $logger->warning('Failed to wipe metrics storage: ' . $e->getMessage());
         }
         foreach (self::$definitions as $metric_name => $definition) {
             if (!empty($definition['labels'])) {
@@ -226,7 +232,7 @@ class Metrics
                 }
             } catch (\Throwable $e) {
                 self::$registry = null;
-                $logger->debug('Failed to seed ' . $metric_name . ': ' . $e->getMessage());
+                $logger->warning('Failed to seed ' . $metric_name . ': ' . $e->getMessage());
             }
         }
     }
