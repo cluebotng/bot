@@ -37,12 +37,12 @@ class Action
         if (!Config::$dry) {
             if ($warning_level >= 4) {
                 /* Report them if they have been warned 4 times. */
-                $logger->info('Reporting ' . $change['user'] . ' to AIV', ['revision_id' => $change['revid']]);
+                $logger->notice('Reporting ' . $change['user'] . ' to AIV', ['revision_id' => $change['revid']]);
                 Metrics::increment('bot_aiv_reports_total');
                 self::aiv($change, $report);
             } else {
                 /* Warn them if they haven't been warned 4 times. */
-                $logger->info(
+                $logger->notice(
                     'Warning ' . $change['user'] . ' with level ' . $warning_level,
                     ['revision_id' => $change['revid']]
                 );
@@ -84,7 +84,6 @@ class Action
 
     private static function aiv($change, $report)
     {
-        global $logger;
         $aivdata = Api::$q->getpage('Wikipedia:Administrator_intervention_against_vandalism/TB2');
         if (!preg_match('/' . preg_quote($change['user'], '/') . '/i', $aivdata)) {
             Api::$a->edit(
@@ -103,7 +102,6 @@ class Action
 
     private static function warn($change, $report, $content, $warning)
     {
-        global $logger;
         $ret = Api::$a->edit(
             'User talk:' . $change['user'],
             $content . "\n\n"
@@ -158,7 +156,6 @@ class Action
 
     public static function shouldRevert($change)
     {
-        global $logger;
         $reason = 'Default revert';
         if (preg_match('/(assisted|manual)/iS', Config::$status)) {
             echo 'Revert [y/N]? ';
