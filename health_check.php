@@ -50,14 +50,14 @@ if (count($usercontribs) != 1) {
 $last_contrib_timestamp = $usercontribs[0]['timestamp'];
 Metrics::set('bot_last_contribution_seconds', (float)strtotime($last_contrib_timestamp));
 
- /* If we edited recently, then all good */
-if (strtotime($last_contrib_timestamp) > (time() - 3600)) {
+ /* If we edited within the last 3 hours, then all good */
+if (strtotime($last_contrib_timestamp) > (time() - 10800)) {
     $logger->info('Last contribution was beyond threshold (' . $last_contrib_timestamp . ')');
     exit(0);
 }
 
- /* If we have been running for less than 30min, then all good (back off) */
-if ($start_time > (time() - 1800)) {
+ /* If we have been running for less than 1 hour, then all good (back off) */
+if ($start_time > (time() - 3600)) {
     $logger->info('Uptime less than 30min (' . $start_time . ')');
     exit(0);
 }
