@@ -111,16 +111,17 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     $title = str_replace(' ', '_', $title);
     $data = [
         'common' => [
-            'creator' => false,
-            'page_made_time' => false,
-            'num_recent_edits' => false,
-            'num_recent_reversions' => false,
+            'creator' => null,
+            'page_made_time' => null,
+            'num_recent_edits' => null,
+            'num_recent_reversions' => null,
         ],
-        'user_reg_time' => false,
-        'user_warns' => false,
-        'user_edit_count' => false,
-        'user_distinct_pages' => false,
+        'user_reg_time' => null,
+        'user_warns' => null,
+        'user_edit_count' => null,
+        'user_distinct_pages' => null,
     ];
+
     try {
         $res = mysqli_query(
             $mw_mysql,
@@ -225,132 +226,70 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         }
     }
 
-    if (
-        filter_var($user, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ||
-        filter_var($user, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
-    ) {
-        $data['user_reg_time'] = time();
+    try {
+        $res = mysqli_query(
+            $mw_mysql,
+            'SET STATEMENT max_statement_time=120 FOR ' .
+            'SELECT `user_registration`, `user_editcount` FROM `user` WHERE `user_name` = "' .
+            mysqli_real_escape_string($mw_mysql, $user) . '"'
+        );
 
+        if ($res === false) {
+            $logger->warning("user registration query returned no data for " .
+                                $user . ": " . mysqli_error($mw_mysql));
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['user_registration', 'no_data']);
+        } else {
+            $d = mysqli_fetch_assoc($res);
+            $data['user_reg_time'] = $d['user_registration'];
+            $data['user_edit_count'] = $d['user_editcount'];
+        }
+    } catch (mysqli_sql_exception $e) {
+        if ($e->getCode() == 1969) {
+            $logger->warning("user registration query timed out for " . $user);
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['user_registration', 'timeout']);
+        } else {
+            $logger->error("user registration query returned an error for " . $user . ": " .
+                              $e->getMessage());
+            Metrics::increment('bot_mysql_mw_query_failures_total', ['user_registration', 'error']);
+        }
+    }
+
+    if (!$data['user_reg_time']) {
         try {
             $res = mysqli_query(
                 $mw_mysql,
                 'SET STATEMENT max_statement_time=120 FOR ' .
-                'SELECT COUNT(*) AS `user_editcount` FROM `revision_userindex` ' .
+                'SELECT `rev_timestamp` FROM `revision_userindex` ' .
                 ' JOIN `actor_revision` ON `actor_id` = `rev_actor`' .
                 ' WHERE `actor_name` = "' .
-                mysqli_real_escape_string($mw_mysql, $user) . '"'
+                mysqli_real_escape_string($mw_mysql, $user) . '" ORDER BY `rev_timestamp` LIMIT 0,1'
             );
 
             if ($res === false) {
-                $logger->warning("user edit count query returned no data for (invalid ip) " .
+                $logger->warning("user registration via revision query returned no data for " .
                                     $user . ": " . mysqli_error($mw_mysql));
-                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'no_data']);
-            } else {
-                $d = mysqli_fetch_assoc($res);
-                $data['user_edit_count'] = $d['user_editcount'];
-            }
-        } catch (mysqli_sql_exception $e) {
-            if ($e->getCode() == 1969) {
-                $logger->warning("user edit count query timed out for " . $user);
-                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'timeout']);
-            } else {
-                $logger->error("user edit count query returned an error for " . $user . ": " .
-                                  $e->getMessage());
-                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'error']);
-            }
-        }
-    } else {
-        try {
-            $res = mysqli_query(
-                $mw_mysql,
-                'SET STATEMENT max_statement_time=120 FOR ' .
-                'SELECT `user_registration` FROM `user` WHERE `user_name` = "' .
-                mysqli_real_escape_string($mw_mysql, $user) . '"'
-            );
-
-            if ($res === false) {
-                $logger->warning("user registration query returned no data for " .
-                                    $user . ": " . mysqli_error($mw_mysql));
-                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_registration', 'no_data']);
-            } else {
-                $d = mysqli_fetch_assoc($res);
-                $data['user_reg_time'] = $d['user_registration'];
-            }
-        } catch (mysqli_sql_exception $e) {
-            if ($e->getCode() == 1969) {
-                $logger->warning("user registration query timed out for " . $user);
-                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_registration', 'timeout']);
-            } else {
-                $logger->error("user registration query returned an error for " . $user . ": " .
-                                  $e->getMessage());
-                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_registration', 'error']);
-            }
-        }
-
-        if (!$data['user_reg_time']) {
-            try {
-                $res = mysqli_query(
-                    $mw_mysql,
-                    'SET STATEMENT max_statement_time=120 FOR ' .
-                    'SELECT `rev_timestamp` FROM `revision_userindex` ' .
-                    ' JOIN `actor_revision` ON `actor_id` = `rev_actor`' .
-                    ' WHERE `actor_name` = "' .
-                    mysqli_real_escape_string($mw_mysql, $user) . '" ORDER BY `rev_timestamp` LIMIT 0,1'
+                Metrics::increment(
+                    'bot_mysql_mw_query_failures_total',
+                    ['user_registration_via_revision', 'no_data']
                 );
-
-                if ($res === false) {
-                    $logger->warning("user registration via revision query returned no data for " .
-                                        $user . ": " . mysqli_error($mw_mysql));
-                    Metrics::increment(
-                        'bot_mysql_mw_query_failures_total',
-                        ['user_registration_via_revision', 'no_data']
-                    );
-                } else {
-                    $d = mysqli_fetch_assoc($res);
-                    $data['user_reg_time'] = $d['rev_timestamp'];
-                }
-            } catch (mysqli_sql_exception $e) {
-                if ($e->getCode() == 1969) {
-                    $logger->warning("user registration via revision query timed out for " . $user);
-                    Metrics::increment(
-                        'bot_mysql_mw_query_failures_total',
-                        ['user_registration_via_revision', 'timeout']
-                    );
-                } else {
-                    $logger->error("user registration via revision query returned an error for " . $user .
-                                      ": " . $e->getMessage());
-                    Metrics::increment(
-                        'bot_mysql_mw_query_failures_total',
-                        ['user_registration_via_revision', 'error']
-                    );
-                }
-            }
-        }
-
-        try {
-            $res = mysqli_query(
-                $mw_mysql,
-                'SET STATEMENT max_statement_time=120 FOR ' .
-                'SELECT `user_editcount` FROM `user` WHERE `user_name` =  "' .
-                mysqli_real_escape_string($mw_mysql, $user) . '"'
-            );
-
-            if ($res === false) {
-                $logger->warning("user edit count query returned no data for " .
-                                    $user . ": " . mysqli_error($mw_mysql));
-                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'no_data']);
             } else {
                 $d = mysqli_fetch_assoc($res);
-                $data['user_edit_count'] = $d['user_editcount'];
+                $data['user_reg_time'] = $d['rev_timestamp'];
             }
         } catch (mysqli_sql_exception $e) {
             if ($e->getCode() == 1969) {
-                $logger->warning("user edit count query timed out for " . $user);
-                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'timeout']);
+                $logger->warning("user registration via revision query timed out for " . $user);
+                Metrics::increment(
+                    'bot_mysql_mw_query_failures_total',
+                    ['user_registration_via_revision', 'timeout']
+                );
             } else {
-                $logger->error("user edit count query returned an error for " . $user . ": " .
-                                  $e->getMessage());
-                Metrics::increment('bot_mysql_mw_query_failures_total', ['user_edit_count', 'error']);
+                $logger->error("user registration via revision query returned an error for " . $user .
+                                  ": " . $e->getMessage());
+                Metrics::increment(
+                    'bot_mysql_mw_query_failures_total',
+                    ['user_registration_via_revision', 'error']
+                );
             }
         }
     }
