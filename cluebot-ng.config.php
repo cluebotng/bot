@@ -44,7 +44,7 @@ class Config
     public static $core_port = 3565;
     public static $relay_host = 'irc-relay';
     public static $relay_port = 9334;
-    public static $fork = true;
+    public static $max_forks = 30;
     public static $dry = false;
     public static $cb_redis_host = 'redis';
     public static $cb_redis_port = 6379;
@@ -91,6 +91,10 @@ class Config
 
         if ($port = getenv('CBNG_METRICS_PORT')) {
             self::$metrics_port = (int) $port;
+        }
+
+        if ($max_forks = getenv('CBNG_MAX_FORKS')) {
+            self::$max_forks = (int) $max_forks;
         }
     }
 }

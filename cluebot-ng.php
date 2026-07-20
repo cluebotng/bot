@@ -60,6 +60,12 @@ if (Config::$metrics_enabled) {
 }
 HttpFeed::stream();
 
+$logger->info('Waiting for ' . Process::pendingChangesTotal() . ' pending changes');
+while (Process::pendingChangesTotal() > 0) {
+    Process::dispatchPending();
+    usleep(100000);
+}
+
 $logger->info('Waiting for ' . count(Globals::$activeChildren) . ' workers to finish');
 while (!empty(Globals::$activeChildren)) {
     usleep(100000);

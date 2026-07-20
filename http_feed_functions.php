@@ -119,6 +119,7 @@ class HttpFeed
                 self::$lastCheckpointTime = time();
             }
             refreshDataTick();
+            Process::dispatchPending();
         } while ($running > 0 && self::$running);
 
         $uptime = time() - $start_time;
