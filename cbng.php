@@ -102,16 +102,20 @@ function parseFeedData($feedData)
         and isset($api['revisions'][1]['timestamp'])
         and isset($api['revisions'][1]['*']))
     ) {
-        $logger->warning("Failed to get revision info", ['revision_id' => $feedData['revid']]);
+        $logger->warning(
+            "Failed to get revision info",
+            ['revision_id' => $feedData['revid'], 'title' => $feedData['namespaced_title']]
+        );
         Metrics::increment('bot_edits_skipped_missing_revision_data_total');
         return null;
     }
 
+    $cutoff_timestamp = $feedData['timestamp'] - (14 * 86400);
     $cb = getCbData(
         $feedData['user'],
         $feedData['namespaceid'],
         $feedData['title'],
-        $feedData['timestamp'] - (14 * 86400)
+        $cutoff_timestamp
     );
     if (
         !(isset($cb['user_edit_count'])
@@ -119,7 +123,16 @@ function parseFeedData($feedData)
         and isset($cb['user_warns'])
         and isset($cb['user_reg_time']))
     ) {
-        $logger->warning("Failed to get user info", ['revision_id' => $feedData['revid']]);
+        $logger->warning(
+            "Failed to get user info",
+            [
+                'revision_id' => $feedData['revid'],
+                'user' => $feedData['user'],
+                'namespace_id' => $feedData['namespaceid'],
+                'title' => $feedData['title'],
+                'cutoff_timestamp' => $cutoff_timestamp,
+            ]
+        );
         Metrics::increment('bot_edits_skipped_missing_cb_data_total');
         return null;
     }
@@ -129,7 +142,16 @@ function parseFeedData($feedData)
         and isset($cb['common']['num_recent_edits'])
         and isset($cb['common']['num_recent_reversions']))
     ) {
-        $logger->warning("Failed to get common info", ['revision_id' => $feedData['revid']]);
+        $logger->warning(
+            "Failed to get common info",
+            [
+                'revision_id' => $feedData['revid'],
+                'user' => $feedData['user'],
+                'namespace_id' => $feedData['namespaceid'],
+                'title' => $feedData['title'],
+                'cutoff_timestamp' => $cutoff_timestamp,
+            ]
+        );
         return null;
     }
 
