@@ -41,6 +41,12 @@ Api::init($logger);
 $start_time = filemtime("/proc/1");
 Metrics::set('bot_start_time_seconds', (float)$start_time);
 
+/* If we have been running for less than 1 hour, then all good (back off) */
+if ($start_time > (time() - 3600)) {
+    $logger->info('Uptime less than 30min (' . $start_time . ')');
+    exit(0);
+}
+
 /* Get our last edit time */
 $usercontribs = Api::$a->usercontribs(Config::$user, 1);
 if (count($usercontribs) != 1) {
@@ -50,18 +56,12 @@ if (count($usercontribs) != 1) {
 $last_contrib_timestamp = $usercontribs[0]['timestamp'];
 Metrics::set('bot_last_contribution_seconds', (float)strtotime($last_contrib_timestamp));
 
- /* If we edited within the last 3 hours, then all good */
+/* If we edited within the last 3 hours, then all good */
 if (strtotime($last_contrib_timestamp) > (time() - 10800)) {
     $logger->info('Last contribution was beyond threshold (' . $last_contrib_timestamp . ')');
     exit(0);
 }
 
- /* If we have been running for less than 1 hour, then all good (back off) */
-if ($start_time > (time() - 3600)) {
-    $logger->info('Uptime less than 30min (' . $start_time . ')');
-    exit(0);
-}
-
- /* Otherwise, we need to die */
- $logger->error('Are you death or paradise? ' . $last_contrib_timestamp . ' / ' . $start_time);
- exit(1);
+/* Otherwise, we need to die */
+$logger->error('Are you death or paradise? ' . $last_contrib_timestamp . ' / ' . $start_time);
+exit(1);
