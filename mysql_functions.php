@@ -125,14 +125,16 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
         $res = mysqli_query(
             $mw_mysql,
             'SET STATEMENT max_statement_time=120 FOR ' .
-            'SELECT `rev_timestamp`, `actor_name` FROM `page`' .
-            ' JOIN `revision` ON `rev_page` = `page_id`' .
+            'SELECT `rev_timestamp`, `actor_name` FROM `revision`' .
             ' JOIN `actor_revision` ON `actor_id` = `rev_actor`' .
-            ' WHERE `page_namespace` = "' .
-            mysqli_real_escape_string($mw_mysql, $nsid) .
-            '" AND `page_title` = "' .
-            mysqli_real_escape_string($mw_mysql, $title) .
-            '" ORDER BY `rev_id` LIMIT 1'
+            ' WHERE `rev_id` = (' .
+            '  SELECT MIN(`rev_id`) FROM `revision`' .
+            '  JOIN `page` ON `page_id` = `rev_page`' .
+            '  WHERE' .
+            '  `page_namespace` = "' . mysqli_real_escape_string($mw_mysql, $nsid) . '"' .
+            '  AND ' .
+            '  `page_title` = "' . mysqli_real_escape_string($mw_mysql, $title) . '"' .
+            ')'
         );
         if ($res === false) {
             $logger->warning("page metadata query returned no data for " . $title .
