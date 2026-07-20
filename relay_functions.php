@@ -25,21 +25,23 @@ class Relay
 {
     public static function publishEdit($change, $score = null, $reverted = false, $comment = null)
     {
-        self::send(json_encode([
-            'change' => [
-                'namespace' => $change['namespace'],
-                'title' => $change['namespaced_title'],
-                'revision_id' => $change['revid'],
-                'flags' => $change['flags'],
-                'user' => $change['user'],
-                'length' => $change['length'],
-                'comment' => $change['comment'],
-                'url' => $change['url'],
-            ],
-            'score' => $score,
-            'reverted' => $reverted,
-            'comment' => $comment,
-        ]));
+        if ($score !== null || $reverted === true) {
+            self::send(json_encode([
+                'change' => [
+                    'namespace' => $change['namespace'],
+                    'title' => $change['namespaced_title'],
+                    'revision_id' => $change['revid'],
+                    'flags' => $change['flags'],
+                    'user' => $change['user'],
+                    'length' => $change['length'],
+                    'comment' => $change['comment'],
+                    'url' => $change['url'],
+                ],
+                'score' => $score,
+                'reverted' => $reverted,
+                'comment' => $comment,
+            ]));
+        }
     }
 
     public static function publishWarnedUser($username, $level)
