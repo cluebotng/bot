@@ -81,6 +81,13 @@ class Process
             return;
         }
 
+        // Ignore whitelisted bots as early as possible - before starting to load any data
+        if (Action::isWhitelistedBot($change['user'])) {
+            $logger->info('Skipping: Bot whitelisted', ['revision_id' => $change['revid'], 'bot' => $change['user']]);
+            Metrics::increment('bot_edits_whitelisted_bot_total');
+            return;
+        }
+
         if (Config::$fork) {
             $pid = pcntl_fork();
             if ($pid == -1) {
@@ -124,9 +131,12 @@ class Process
             return;
         }
 
-        if (Action::isWhitelisted($change['user'])) {
-            $logger->info('Skipping: User whitelisted', ['revision_id' => $change['revid'], 'score' => $score]);
-            Metrics::increment('bot_edits_whitelisted_total');
+        if (Action::isWhitelistedUser($change['user'])) {
+            $logger->info(
+                'Skipping: User whitelisted',
+                ['revision_id' => $change['revid'], 'score' => $score, 'user' => $change['user']]
+            );
+            Metrics::increment('bot_edits_whitelisted_user_total');
             Relay::publishEdit($change, $score, false, 'User whitelisted');
             return;
         }

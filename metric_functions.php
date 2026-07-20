@@ -88,8 +88,13 @@ class Metrics
             []
         );
         self::registerCounter(
-            'bot_edits_whitelisted_total',
+            'bot_edits_whitelisted_user_total',
             'Total edits skipped because the user is whitelisted',
+            []
+        );
+        self::registerCounter(
+            'bot_edits_whitelisted_bot_total',
+            'Total edits skipped because the bot is whitelisted',
             []
         );
         self::registerCounter(

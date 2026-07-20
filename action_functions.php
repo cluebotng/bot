@@ -226,8 +226,13 @@ class Action
         return true;
     }
 
-    public static function isWhitelisted($user)
+    public static function isWhitelistedUser($user)
     {
         return in_array($user, Globals::$wl, true);
+    }
+
+    public static function isWhitelistedBot($user)
+    {
+        return in_array($user, Config::$bot_whitelist, true);
     }
 }

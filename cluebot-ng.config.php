@@ -52,6 +52,8 @@ class Config
     public static $cb_redis_pass = '';
     public static $metrics_enabled = true;
     public static $metrics_port = 9095;
+    // Bots which are spikey in changes and have very large edit counts
+    public static $bot_whitelist = ['InternetArchiveBot', 'AnomieBOT', 'Jevansen'];
 
     public static function init()
     {
