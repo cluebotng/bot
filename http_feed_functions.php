@@ -39,10 +39,10 @@ class HttpFeed
         }
 
         $recentAttempts = 0;
-        $server_enforced_timeout = false;
+        $handle_interruption_gracefully = false;
         while (self::$running) {
             $recentAttempts++;
-            [$uptime, $server_enforced_timeout] = self::connect($server_enforced_timeout);
+            [$uptime, $handle_interruption_gracefully] = self::connect($handle_interruption_gracefully);
             if (!self::$running) {
                 break;
             }
@@ -118,25 +118,28 @@ class HttpFeed
         } while ($running > 0 && self::$running);
 
         $uptime = time() - $start_time;
-        $server_enforced_timeout = false;
+        $handle_interruption_gracefully = false;
 
         $info = curl_multi_info_read($mh);
         if ($info !== false && $info['result'] !== CURLE_OK) {
-            $log_message = 'EventStream hit curl error: ' . curl_strerror($info['result']);
             // CURLE_HTTP2_STREAM - the server will close the connection after 15min.
             // x-ref: https://wikitech.wikimedia.org/wiki/Event_Platform/EventStreams_HTTP_Service
-            if ($info['result'] === 92 && $uptime > 720) {
-                $logger->debug($log_message, ['curl_result' => $info['result'], 'uptime' => $uptime]);
-                $server_enforced_timeout = true;
+            //
+            // It appears to happen more often than 15min, so don't gate on time, just re-connect.
+            // As we are tracking the last ID, we shouldn't miss events, just be slower to see them.
+            $log_message = 'EventStream hit curl error: ' . curl_strerror($info['result']);
+            if ($info['result'] === 92) {
+                $logger->debug($log_message, ['uptime' => $uptime]);
+                $handle_interruption_gracefully = true;
             } else {
-                $logger->error($log_message, ['curl_result' => $info['result'], 'uptime' => $uptime]);
+                $logger->error($log_message, ['uptime' => $uptime]);
             }
         }
 
         curl_multi_remove_handle($mh, $ch);
         curl_multi_close($mh);
 
-        return [$uptime, $server_enforced_timeout];
+        return [$uptime, $handle_interruption_gracefully];
     }
 
     private static function processChunk($ch, $chunk)
