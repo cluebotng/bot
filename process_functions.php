@@ -23,6 +23,13 @@ namespace CluebotNG;
 
 class Process
 {
+    private static $pendingChanges = [];
+
+    public static function pendingChangesTotal()
+    {
+        return count(self::$pendingChanges);
+    }
+
     public static function processEdit($change)
     {
         global $logger;
@@ -88,7 +95,20 @@ class Process
             return;
         }
 
-        if (Config::$fork) {
+        self::$pendingChanges[] = $change;
+        self::dispatchPending();
+    }
+
+    public static function dispatchPending()
+    {
+        global $logger;
+
+        while (
+            !empty(self::$pendingChanges) &&
+            (Config::$max_forks <= 0 || count(Globals::$activeChildren) < Config::$max_forks)
+        ) {
+            $change = array_shift(self::$pendingChanges);
+
             $pid = pcntl_fork();
             if ($pid == -1) {
                 $logger->error("Failed to fork");
@@ -99,20 +119,18 @@ class Process
                 $logger->debug("Created fork with " . $pid);
                 Globals::$activeChildren[$pid] = true;
                 Metrics::set('bot_forks_total', count(Globals::$activeChildren));
-                return;
+                continue;
             }
             // Child
             $logger->debug("Fork started");
             mt_srand();
             Metrics::reset();
-        }
-        $change = parseFeedData($change);
-        if ($change === null) {
-            Metrics::increment('bot_edits_skipped_missing_data_total');
-        } else {
-            self::processEditThread($change);
-        }
-        if (Config::$fork) {
+            $change = parseFeedData($change);
+            if ($change === null) {
+                Metrics::increment('bot_edits_skipped_missing_data_total');
+            } else {
+                self::processEditThread($change);
+            }
             $logger->debug("Fork finished");
             // Avoid propagating shutdown signals from die() which cause curl's connection to get dropped
             posix_kill(posix_getpid(), SIGKILL);
