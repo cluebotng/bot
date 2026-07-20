@@ -126,10 +126,10 @@ class HttpFeed
             // CURLE_HTTP2_STREAM - the server will close the connection after 15min.
             // x-ref: https://wikitech.wikimedia.org/wiki/Event_Platform/EventStreams_HTTP_Service
             if ($info['result'] === 92 && $uptime > 720) {
-                $logger->debug($log_message);
+                $logger->debug($log_message, ['curl_result' => $info['result'], 'uptime' => $uptime]);
                 $server_enforced_timeout = true;
             } else {
-                $logger->error($log_message);
+                $logger->error($log_message, ['curl_result' => $info['result'], 'uptime' => $uptime]);
             }
         }
 
