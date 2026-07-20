@@ -37,14 +37,17 @@ class Action
         if (!Config::$dry) {
             if ($warning_level >= 4) {
                 /* Report them if they have been warned 4 times. */
-                $logger->notice('Reporting ' . $change['user'] . ' to AIV', ['revision_id' => $change['revid']]);
+                $logger->notice(
+                    'Reporting user to AIV',
+                    ['revision_id' => $change['revid'], 'user' => $change['user']]
+                );
                 Metrics::increment('bot_aiv_reports_total');
                 self::aiv($change, $report);
             } else {
                 /* Warn them if they haven't been warned 4 times. */
                 $logger->notice(
-                    'Warning ' . $change['user'] . ' with level ' . $warning_level,
-                    ['revision_id' => $change['revid']]
+                    'Adding warning to user talk page',
+                    ['revision_id' => $change['revid'], 'user' => $change['user'], 'level' => $warning_level]
                 );
                 Metrics::increment('bot_warnings_issued_total', [(string)$warning_level]);
                 self::warn($change, $report, $tpcontent, $warning_level);
@@ -121,8 +124,15 @@ class Action
 
     public static function doRevert($change)
     {
+        global $logger;
         $rev = Api::$a->revisions($change['namespaced_title'], 5, 'older', false, null, true);
         if (empty($rev)) {
+            $logger->warning(
+                'Skipping revert due to no previous revisions',
+                ['revision_id' => $change['revid']]
+            );
+            Metrics::increment('bot_reverts_skipped_total', ['reason' => 'missing_revisions']);
+            Relay::publishEdit($change, $score, false, 'Failed to find previous revision');
             return false;
         }
         $revid = 0;
@@ -134,15 +144,31 @@ class Action
             }
         }
         if ($revdata === null) {
+            $logger->warning(
+                'Skipping revert due to missing previous revision by another user',
+                ['revision_id' => $change['revid'], 'candidate_revisions' => count($revdata)],
+            );
+            Metrics::increment('bot_reverts_skipped_total', ['reason' => 'previous_revisions_by_user']);
+            Relay::publishEdit($change, $score, false, 'Prevision revision by same user');
             return false;
         }
-        if (($revdata['user'] == Config::$user) or (in_array($revdata['user'], Config::$friends))) {
+        if ($revdata['user'] == Config::$user) {
+            $logger->notice('Skipping revert of own account', ['revision_id' => $change['revid']]);
+            Metrics::increment('bot_reverts_skipped_total', ['reason' => 'own_account']);
+            Relay::publishEdit($change, $score, false, 'User is self');
+            return false;
+        }
+        if (in_array($revdata['user'], Config::$friends)) {
+            $logger->notice('Skipping revert of a friend', ['revision_id' => $change['revid']]);
+            Metrics::increment('bot_reverts_skipped_total', ['reason' => 'friends_account']);
+            Relay::publishEdit($change, $score, false, 'User is a friend');
             return false;
         }
         if (Config::$dry) {
+            $logger->warning('Faking revert due to configuration', ['revision_id' => $change['revid']]);
             return true;
         }
-        $rbret = Api::$a->rollback(
+        return Api::$a->rollback(
             $change['namespaced_title'],
             $change['user'],
             'Reverting possible vandalism by [[Special:Contribs/' . $change['user'] . '|' . $change['user'] . ']] ' .
@@ -150,8 +176,6 @@ class Action
             '[[WP:CBFP|Report False Positive?]] ' .
             'Thanks, [[WP:CBNG|' . Config::$user . ']]. (' . $change['mysqlid'] . ') (Bot)',
         );
-
-        return $rbret;
     }
 
     public static function shouldRevert($change)

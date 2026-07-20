@@ -123,6 +123,11 @@ class Metrics
             []
         );
         self::registerCounter(
+            'bot_reverts_skipped_total',
+            'Total reverts skipped',
+            ['reason']
+        );
+        self::registerCounter(
             'bot_mysql_mw_query_failures_total',
             'Total replica MySQL query failures',
             ['query', 'reason']
