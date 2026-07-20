@@ -85,14 +85,18 @@ class HttpFeed
 
         $ch = curl_init('https://stream.wikimedia.org/v2/stream/mediawiki.recentchange');
         curl_setopt_array($ch, [
-            CURLOPT_HTTPHEADER     => $headers,
-            CURLOPT_WRITEFUNCTION  => [self::class, 'processChunk'],
-            CURLOPT_TIMEOUT        => 0,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TCP_KEEPALIVE  => 1,
-            CURLOPT_BUFFERSIZE     => 128,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_USERAGENT      => 'ClueBot/2.0',
+            CURLOPT_HTTPHEADER      => $headers,
+            CURLOPT_WRITEFUNCTION   => [self::class, 'processChunk'],
+            CURLOPT_HTTP_VERSION    => CURL_HTTP_VERSION_2TLS,
+            CURLOPT_TIMEOUT         => 0,
+            CURLOPT_CONNECTTIMEOUT  => 10,
+            CURLOPT_TCP_KEEPALIVE   => 1,
+            CURLOPT_TCP_KEEPIDLE    => 30,
+            CURLOPT_TCP_KEEPINTVL   => 15,
+            CURLOPT_LOW_SPEED_LIMIT => 1,
+            CURLOPT_LOW_SPEED_TIME  => 90,
+            CURLOPT_FOLLOWLOCATION  => true,
+            CURLOPT_USERAGENT       => 'ClueBot/2.0',
         ]);
 
         $mh = curl_multi_init();
