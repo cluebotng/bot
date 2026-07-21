@@ -143,8 +143,10 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             Metrics::increment('bot_mysql_mw_query_failures_total', ['page_metadata', 'no_data']);
         } else {
             $d = mysqli_fetch_assoc($res);
-            $data['common']['page_made_time'] = $d['rev_timestamp'];
-            $data['common']['creator'] = $d['actor_name'];
+            if ($d !== null) {
+                $data['common']['page_made_time'] = $d['rev_timestamp'];
+                $data['common']['creator'] = $d['actor_name'];
+            }
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
@@ -176,7 +178,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             Metrics::increment('bot_mysql_mw_query_failures_total', ['page_recent_edits', 'no_data']);
         } else {
             $d = mysqli_fetch_assoc($res);
-            $data['common']['num_recent_edits'] = $d['count'];
+            if ($d !== null) {
+                $data['common']['num_recent_edits'] = $d['count'];
+            }
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
@@ -212,7 +216,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             Metrics::increment('bot_mysql_mw_query_failures_total', ['page_recent_reverts', 'no_data']);
         } else {
             $d = mysqli_fetch_assoc($res);
-            $data['common']['num_recent_reversions'] = $d['count'];
+            if ($d !== null) {
+                $data['common']['num_recent_reversions'] = $d['count'];
+            }
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
@@ -240,8 +246,10 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             Metrics::increment('bot_mysql_mw_query_failures_total', ['user_registration', 'no_data']);
         } else {
             $d = mysqli_fetch_assoc($res);
-            $data['user_reg_time'] = $d['user_registration'];
-            $data['user_edit_count'] = $d['user_editcount'];
+            if ($d !== null) {
+                $data['user_reg_time'] = $d['user_registration'];
+                $data['user_edit_count'] = $d['user_editcount'];
+            }
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
@@ -274,7 +282,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
                 );
             } else {
                 $d = mysqli_fetch_assoc($res);
-                $data['user_reg_time'] = $d['rev_timestamp'];
+                if ($d !== null) {
+                    $data['user_reg_time'] = $d['rev_timestamp'];
+                }
             }
         } catch (mysqli_sql_exception $e) {
             if ($e->getCode() == 1969) {
@@ -313,7 +323,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
             Metrics::increment('bot_mysql_mw_query_failures_total', ['user_warnings_count', 'no_data']);
         } else {
             $d = mysqli_fetch_assoc($res);
-            $data['user_warns'] = $d['count'];
+            if ($d !== null) {
+                $data['user_warns'] = $d['count'];
+            }
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
@@ -337,7 +349,9 @@ function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
 
         if ($res !== false) {
             $d = mysqli_fetch_assoc($res);
-            $data['user_distinct_pages'] = $d['count'];
+            if ($d !== null) {
+                $data['user_distinct_pages'] = $d['count'];
+            }
         }
     } catch (mysqli_sql_exception $e) {
         if ($e->getCode() == 1969) {
