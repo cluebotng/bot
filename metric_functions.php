@@ -221,10 +221,10 @@ class Metrics
             return;
         }
         try {
-            self::registry()->wipeStorage();
+            @self::registry()->wipeStorage();
         } catch (\Throwable $e) {
             self::$registry = null;
-            $logger->warning('Failed to wipe metrics storage: ' . $e->getMessage());
+            $logger->debug('Failed to wipe metrics storage: ' . $e->getMessage());
         }
         foreach (self::$definitions as $metric_name => $definition) {
             if (!empty($definition['labels'])) {
@@ -232,17 +232,17 @@ class Metrics
             }
             try {
                 if ($definition['type'] === 'counter') {
-                    self::registry()
+                    @self::registry()
                         ->getOrRegisterCounter('cbng', $metric_name, $definition['help'], $definition['labels'])
                         ->incBy(0, []);
                 } elseif ($definition['type'] === 'gauge') {
-                    self::registry()
+                    @self::registry()
                         ->getOrRegisterGauge('cbng', $metric_name, $definition['help'], $definition['labels'])
                         ->set(0, []);
                 }
             } catch (\Throwable $e) {
                 self::$registry = null;
-                $logger->warning('Failed to seed ' . $metric_name . ': ' . $e->getMessage());
+                $logger->debug('Failed to seed ' . $metric_name . ': ' . $e->getMessage());
             }
         }
     }
@@ -303,12 +303,12 @@ class Metrics
             return;
         }
         try {
-            self::registry()
+            @self::registry()
                 ->getOrRegisterCounter('cbng', $name, $definition['help'], $definition['labels'])
                 ->inc($labelValues);
         } catch (\Throwable $e) {
             self::$registry = null;
-            $logger->warning('Failed to increment metric: ' . $e->getMessage());
+            $logger->debug('Failed to increment metric: ' . $e->getMessage());
         }
     }
 
@@ -324,12 +324,12 @@ class Metrics
             return;
         }
         try {
-            self::registry()
+            @self::registry()
                 ->getOrRegisterGauge('cbng', $name, $definition['help'], $definition['labels'])
                 ->set($value, $labelValues);
         } catch (\Throwable $e) {
             self::$registry = null;
-            $logger->warning('Failed to set metric: ' . $e->getMessage());
+            $logger->debug('Failed to set metric: ' . $e->getMessage());
         }
     }
 
@@ -345,7 +345,7 @@ class Metrics
             return;
         }
         try {
-            self::registry()
+            @self::registry()
                 ->getOrRegisterHistogram(
                     'cbng',
                     $name,
@@ -356,7 +356,7 @@ class Metrics
                 ->observe($value, $labelValues);
         } catch (\Throwable $e) {
             self::$registry = null;
-            $logger->warning('Failed to observe metric: ' . $e->getMessage());
+            $logger->debug('Failed to observe metric: ' . $e->getMessage());
         }
     }
 }
