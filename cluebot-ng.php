@@ -55,9 +55,7 @@ $shutdownHandler = function ($signo) {
 
 date_default_timezone_set('UTC');
 doInit();
-if (Config::$metrics_enabled) {
-    MetricServer::run();
-}
+MetricServer::run();
 HttpFeed::stream();
 
 $logger->info('Waiting for ' . Process::pendingChangesTotal() . ' pending changes');
