@@ -25,8 +25,6 @@ class Config
 {
     public static $user = 'ClueBot NG';
     public static $pass = ""; // Read from disk
-    public static $status = 'auto';
-    public static $angry = false;
     public static $owner = 'Cobi';
     public static $friends = ['ClueBot', 'DASHBotAV'];
     public static $mw_mysql_host = 'enwiki.labsdb';

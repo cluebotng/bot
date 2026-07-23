@@ -181,20 +181,11 @@ class Action
     public static function shouldRevert($change)
     {
         $reason = 'Default revert';
-        if (preg_match('/(assisted|manual)/iS', Config::$status)) {
-            echo 'Revert [y/N]? ';
-            if (strtolower(substr(fgets(Globals::$stdin, 3), 0, 1)) != 'y') {
-                return [false, 'Manual mode says no'];
-            }
-        }
         if (!Globals::$run) {
             return [false, 'Run disabled'];
         }
         if ($change['user'] == Config::$user) {
             return [false, 'User is myself'];
-        }
-        if (Config::$angry) {
-            return [true, 'Angry-reverting in angry mode'];
         }
         if (!self::findAndParseBots($change)) {
             return [false, 'Exclusion compliance'];
