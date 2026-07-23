@@ -48,7 +48,6 @@ class Config
     public static $cb_redis_port = 6379;
     public static $cb_redis_db = 1;
     public static $cb_redis_pass = '';
-    public static $metrics_enabled = true;
     public static $metrics_port = 9095;
     // Bots which are spikey in changes and have very large edit counts
     public static $bot_whitelist = ['InternetArchiveBot', 'AnomieBOT', 'Jevansen'];
@@ -81,10 +80,6 @@ class Config
 
         if ($mysql_credentials = getenv('CBNG_BOT_MYSQL_CREDENTIALS')) {
             self::$mw_mysql_credentials = json_decode($mysql_credentials, true);
-        }
-
-        if ($metrics_enabled = getenv('CBNG_METRICS_ENABLED')) {
-            self::$metrics_enabled = $metrics_enabled === 'true';
         }
 
         if ($port = getenv('CBNG_METRICS_PORT')) {

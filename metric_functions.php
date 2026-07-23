@@ -278,9 +278,6 @@ class Metrics
     private static function seedMetricsStore(): void
     {
         global $logger;
-        if (!Config::$metrics_enabled) {
-            return;
-        }
         try {
             @self::registry()->wipeStorage();
         } catch (\Throwable $e) {
@@ -364,9 +361,6 @@ class Metrics
     public static function increment(string $name, array $labelValues = []): void
     {
         global $logger;
-        if (!Config::$metrics_enabled) {
-            return;
-        }
         $definition = self::$definitions[$name] ?? null;
         if ($definition === null) {
             $logger->warning("Unknown metric: $name");
@@ -385,9 +379,6 @@ class Metrics
     public static function set(string $name, float $value, array $labelValues = []): void
     {
         global $logger;
-        if (!Config::$metrics_enabled) {
-            return;
-        }
         $definition = self::$definitions[$name] ?? null;
         if ($definition === null) {
             $logger->warning("Unknown metric: $name");
@@ -406,9 +397,6 @@ class Metrics
     public static function observe(string $name, float $value, array $labelValues = []): void
     {
         global $logger;
-        if (!Config::$metrics_enabled) {
-            return;
-        }
         $definition = self::$definitions[$name] ?? null;
         if ($definition === null) {
             $logger->warning("Unknown metric: $name");
