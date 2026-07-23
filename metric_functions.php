@@ -40,17 +40,20 @@ class Metrics
         self::registerCounter(
             'bot_warnings_issued_total',
             'Total warnings issued by level',
-            ['level']
+            ['level'],
+            [['1'], ['2'], ['3']]
         );
         self::registerCounter(
             'bot_stream_events_received_total',
             'Total events received from the MediaWiki EventStream',
-            ['event_type']
+            ['event_type'],
+            ['edit', 'new', 'log', 'categorize', 'external']
         );
         self::registerCounter(
             'bot_stream_events_skipped_total',
             'Total events skipped at the stream level',
-            ['event_type']
+            ['event_type'],
+            ['log', 'categorize', 'external']
         );
         self::registerCounter(
             'bot_stream_events_failed_parsing_total',
@@ -109,7 +112,19 @@ class Metrics
         self::registerCounter(
             'bot_revert_decisions_total',
             'Total revert decisions made',
-            ['decision', 'reason']
+            ['decision', 'reason'],
+            [
+                ['no', 'Run disabled'],
+                ['no', 'User is myself'],
+                ['no', 'Exclusion compliance'],
+                ['no', 'User is creator'],
+                ['no', 'User has edit count'],
+                ['no', 'Reverted before'],
+                ['yes', 'Angry-reverting on TFA'],
+                ['yes', 'Angry-reverting on angry-optin'],
+                ['yes', 'User has edit count, but warns > 10%'],
+                ['yes', 'Default revert'],
+            ]
         );
         self::registerCounter(
             'bot_reverts_attempted_total',
@@ -129,17 +144,47 @@ class Metrics
         self::registerCounter(
             'bot_reverts_skipped_total',
             'Total reverts skipped',
-            ['reason']
+            ['reason'],
+            [
+                ['missing_revisions'],
+                ['previous_revisions_by_user'],
+                ['own_account'],
+                ['friends_account'],
+            ]
         );
         self::registerCounter(
             'bot_mysql_mw_query_failures_total',
             'Total replica MySQL query failures',
-            ['query', 'reason']
+            ['query', 'reason'],
+            [
+                ['page_metadata', 'no_data'],
+                ['page_metadata', 'timeout'],
+                ['page_metadata', 'error'],
+                ['page_recent_edits', 'no_data'],
+                ['page_recent_edits', 'timeout'],
+                ['page_recent_edits', 'error'],
+                ['page_recent_reverts', 'no_data'],
+                ['page_recent_reverts', 'timeout'],
+                ['page_recent_reverts', 'error'],
+                ['user_registration', 'no_data'],
+                ['user_registration', 'timeout'],
+                ['user_registration', 'error'],
+                ['user_registration_via_revision', 'no_data'],
+                ['user_registration_via_revision', 'timeout'],
+                ['user_registration_via_revision'],
+                ['user_warnings_count', 'no_data'],
+                ['user_warnings_count', 'timeout'],
+                ['user_warnings_count', 'error'],
+                ['user_distinct_pages', 'no_data'],
+                ['user_distinct_pages', 'timeout'],
+                ['user_distinct_pages', 'error'],
+            ]
         );
         self::registerCounter(
             'bot_mysql_mw_credential_conn_limit_total',
             'Total times a replica MySQL credential hit its connection limit',
-            ['user']
+            ['user'],
+            array_map(fn($cred) => [$cred['user']], Config::$mw_mysql_credentials)
         );
         self::registerCounter(
             'bot_mysql_mw_connection_retries_total',
@@ -157,14 +202,26 @@ class Metrics
             []
         );
         self::registerCounter(
-            'bot_mysql_cb_query_failures_total',
-            'Total ClueBot MySQL query failures',
-            ['query']
+            'bot_mysql_cb_query_total',
+            'Total ClueBot MySQL queries',
+            ['query'],
+            [
+                ['vandalism_insert'],
+                ['vandalism_update_reverted'],
+                ['vandalism_update_beaten'],
+                ['beaten_insert'],
+            ]
         );
         self::registerCounter(
-            'bot_redis_operation_failures_total',
-            'Total Redis operation failures',
-            ['operation']
+            'bot_mysql_cb_query_failures_total',
+            'Total ClueBot MySQL query failures',
+            ['query'],
+            [
+                ['vandalism_insert'],
+                ['vandalism_update_reverted'],
+                ['vandalism_update_beaten'],
+                ['beaten_insert'],
+            ]
         );
 
         // Gauges
@@ -231,29 +288,38 @@ class Metrics
             $logger->debug('Failed to wipe metrics storage: ' . $e->getMessage());
         }
         foreach (self::$definitions as $metric_name => $definition) {
-            if (!empty($definition['labels'])) {
-                continue;
-            }
-            try {
-                if ($definition['type'] === 'counter') {
-                    @self::registry()
-                        ->getOrRegisterCounter('cbng', $metric_name, $definition['help'], $definition['labels'])
-                        ->incBy(0, []);
-                } elseif ($definition['type'] === 'gauge') {
-                    @self::registry()
-                        ->getOrRegisterGauge('cbng', $metric_name, $definition['help'], $definition['labels'])
-                        ->set(0, []);
+            $labelValueSets = empty($definition['labels']) ? [[]] : ($definition['seed'] ?? []);
+            foreach ($labelValueSets as $labelValues) {
+                try {
+                    if ($definition['type'] === 'counter') {
+                        @self::registry()
+                            ->getOrRegisterCounter('cbng', $metric_name, $definition['help'], $definition['labels'])
+                            ->incBy(0, $labelValues);
+                    } elseif ($definition['type'] === 'gauge') {
+                        @self::registry()
+                            ->getOrRegisterGauge('cbng', $metric_name, $definition['help'], $definition['labels'])
+                            ->set(0, $labelValues);
+                    }
+                } catch (\Throwable $e) {
+                    self::$registry = null;
+                    $logger->debug('Failed to seed ' . $metric_name . ': ' . $e->getMessage());
                 }
-            } catch (\Throwable $e) {
-                self::$registry = null;
-                $logger->debug('Failed to seed ' . $metric_name . ': ' . $e->getMessage());
             }
         }
     }
 
-    private static function registerCounter(string $name, string $help, array $labelNames): void
-    {
-        self::$definitions[$name] = ['type' => 'counter', 'help' => $help, 'labels' => $labelNames];
+    private static function registerCounter(
+        string $name,
+        string $help,
+        array $labelNames,
+        array $seedLabelValues = []
+    ): void {
+        self::$definitions[$name] = [
+            'type' => 'counter',
+            'help' => $help,
+            'labels' => $labelNames,
+            'seed' => $seedLabelValues,
+        ];
     }
 
     private static function registerGauge(string $name, string $help, array $labelNames): void
