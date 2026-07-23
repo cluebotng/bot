@@ -54,7 +54,6 @@ if (count($usercontribs) != 1) {
     exit(1);
 }
 $last_contrib_timestamp = $usercontribs[0]['timestamp'];
-Metrics::set('bot_last_contribution_seconds', (float)strtotime($last_contrib_timestamp));
 
 /* If we edited within the last 3 hours, then all good */
 if (strtotime($last_contrib_timestamp) > (time() - 10800)) {
