@@ -22,33 +22,6 @@ use mysqli_sql_exception;
  * You should have received a copy of the GNU General Public License
  * along with ClueBot NG.  If not, see <http://www.gnu.org/licenses/>.
  */
-function is_mysql_alive($con)
-{
-    try {
-        return @mysqli_query($con, 'SELECT LAST_INSERT_ID()');
-    } catch (mysqli_sql_exception $e) {
-        return false;
-    }
-}
-
-function checkMySQL()
-{
-    if (!Globals::$cb_mysql || !is_mysql_alive(Globals::$cb_mysql)) {
-        Globals::$cb_mysql = mysqli_connect(
-            'p:' . Config::$cb_mysql_host,
-            Config::$cb_mysql_user,
-            Config::$cb_mysql_pass,
-            Config::$cb_mysql_db,
-            Config::$cb_mysql_port
-        );
-        if (!Globals::$cb_mysql) {
-            Metrics::increment('bot_mysql_cb_connection_failures_total');
-            die('cb mysql error: ' . mysqli_connect_error());
-        }
-        mysqli_select_db(Globals::$cb_mysql, Config::$cb_mysql_db);
-    }
-}
-
 function connect_to_mysql($exclude_users = [])
 {
     global $logger;
