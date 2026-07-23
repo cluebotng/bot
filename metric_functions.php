@@ -140,6 +140,20 @@ class Metrics
             ]
         );
         self::registerCounter(
+            'bot_mysql_mw_query_total',
+            'Total replica MySQL queries',
+            ['query'],
+            [
+                ['page_metadata'],
+                ['page_recent_edits'],
+                ['page_recent_reverts'],
+                ['user_registration'],
+                ['user_registration_via_revision'],
+                ['user_warnings_count'],
+                ['user_distinct_pages'],
+            ]
+        );
+        self::registerCounter(
             'bot_mysql_mw_query_failures_total',
             'Total replica MySQL query failures',
             ['query', 'reason'],
@@ -158,7 +172,7 @@ class Metrics
                 ['user_registration', 'error'],
                 ['user_registration_via_revision', 'no_data'],
                 ['user_registration_via_revision', 'timeout'],
-                ['user_registration_via_revision'],
+                ['user_registration_via_revision', 'error'],
                 ['user_warnings_count', 'no_data'],
                 ['user_warnings_count', 'timeout'],
                 ['user_warnings_count', 'error'],
