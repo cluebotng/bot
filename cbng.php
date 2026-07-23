@@ -20,37 +20,48 @@ namespace CluebotNG;
  * You should have received a copy of the GNU General Public License
  * along with ClueBot NG.  If not, see <http://www.gnu.org/licenses/>.
  */
+function isValidRevisionData($data)
+{
+    return $data !== null
+        and isset($data['revisions'][1]['user'])
+        and isset($data['revisions'][0]['timestamp'])
+        and isset($data['revisions'][0]['*'])
+        and isset($data['revisions'][1]['timestamp'])
+        and isset($data['revisions'][1]['*']);
+}
+
 function fetchRevisionData($url)
 {
-    $ch = curl_init();
-    if (isset($proxyhost) and isset($proxyport) and $proxyport != null and $proxyhost != null) {
+    $page = null;
+    for ($attempt = 1; $attempt <= 3; $attempt++) {
+        $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_PROXYTYPE => isset($proxytype) ? $proxytype : CURLPROXY_HTTP,
-            CURLOPT_PROXY => $proxyhost,
-            CURLOPT_PROXYPORT => $proxyport,
+            CURLOPT_USERAGENT      => 'ClueBot/2.0',
+            CURLOPT_URL            => $url,
+            CURLOPT_FOLLOWLOCATION => 1,
+            CURLOPT_MAXREDIRS      => 10,
+            CURLOPT_HEADER         => 0,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_HTTPGET        => 1,
+            CURLOPT_FORBID_REUSE   => 1,
+            CURLOPT_FRESH_CONNECT  => 1,
+            CURLOPT_ENCODING       => '',
+            CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
         ]);
+        $data = json_decode(curl_exec($ch), true);
+        $page = isset($data['query']['pages']) ? current($data['query']['pages']) : null;
+
+        if (isValidRevisionData($page)) {
+            return $page;
+        }
+
+        // Try again after a short wait - hopefully the change has replicated
+        sleep(1);
     }
-    curl_setopt_array($ch, [
-        CURLOPT_USERAGENT      => 'ClueBot/2.0',
-        CURLOPT_URL            => $url,
-        CURLOPT_FOLLOWLOCATION => 1,
-        CURLOPT_MAXREDIRS      => 10,
-        CURLOPT_HEADER         => 0,
-        CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_TIMEOUT        => 120,
-        CURLOPT_CONNECTTIMEOUT => 10,
-        CURLOPT_HTTPGET        => 1,
-        CURLOPT_FORBID_REUSE   => 1,
-        CURLOPT_FRESH_CONNECT  => 1,
-        CURLOPT_ENCODING       => '',
-        CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
-    ]);
-    $result = curl_exec($ch);
-    $data = json_decode($result, true);
-    if (!isset($data['query']['pages'])) {
-        return null;
-    }
-    return current($data['query']['pages']);
+
+    return $page;
 }
 
 function xmlizePart($doc, $key, $data)
@@ -95,13 +106,7 @@ function parseFeedData($feedData)
         '&rvstartid=' . $feedData['revid'] . '&rvlimit=2&rvprop=timestamp|user|content&format=json',
     );
 
-    if (
-        !(isset($api['revisions'][1]['user'])
-        and isset($api['revisions'][0]['timestamp'])
-        and isset($api['revisions'][0]['*'])
-        and isset($api['revisions'][1]['timestamp'])
-        and isset($api['revisions'][1]['*']))
-    ) {
+    if (!isValidRevisionData($api)) {
         $logger->warning(
             "Failed to get revision info",
             ['revision_id' => $feedData['revid'], 'title' => $feedData['namespaced_title']]
