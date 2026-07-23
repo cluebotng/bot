@@ -34,8 +34,7 @@ class Metrics
         // Counters
         self::registerCounter(
             'bot_aiv_reports_total',
-            'Total AIV reports filed',
-            []
+            'Total AIV reports filed'
         );
         self::registerCounter(
             'bot_warnings_issued_total',
@@ -57,12 +56,11 @@ class Metrics
         );
         self::registerCounter(
             'bot_stream_events_failed_parsing_total',
-            'Total events which could not be parsed',
+            'Total events which could not be parsed'
         );
         self::registerCounter(
             'bot_edits_received_total',
-            'Total edits received for processing',
-            []
+            'Total edits received for processing'
         );
         self::registerCounter(
             'bot_edits_skipped_namespace_total',
@@ -71,43 +69,35 @@ class Metrics
         );
         self::registerCounter(
             'bot_edits_skipped_new_article_total',
-            'Total edits skipped because they are new articles',
-            []
+            'Total edits skipped because they are new articles'
         );
         self::registerCounter(
             'bot_edits_skipped_missing_revision_data_total',
-            'Total edits skipped due to failed revision data fetch',
-            []
+            'Total edits skipped due to failed revision data fetch'
         );
         self::registerCounter(
             'bot_edits_skipped_missing_cb_data_total',
-            'Total edits skipped due to failed cluebot data fetch',
-            []
+            'Total edits skipped due to failed cluebot data fetch'
         );
         self::registerCounter(
             'bot_edits_skipped_missing_data_total',
-            'Total edits skipped due to missing edit data',
-            []
+            'Total edits skipped due to missing edit data'
         );
         self::registerCounter(
             'bot_edits_below_threshold_total',
-            'Total edits below the vandalism score threshold',
-            []
+            'Total edits below the vandalism score threshold'
         );
         self::registerCounter(
             'bot_edits_whitelisted_user_total',
-            'Total edits skipped because the user is whitelisted',
-            []
+            'Total edits skipped because the user is whitelisted'
         );
         self::registerCounter(
             'bot_edits_whitelisted_bot_total',
-            'Total edits skipped because the bot is whitelisted',
-            []
+            'Total edits skipped because the bot is whitelisted'
         );
         self::registerCounter(
             'bot_edits_vandalism_detected_total',
-            'Total edits flagged as potential vandalism above threshold',
-            []
+            'Total edits flagged as potential vandalism above threshold'
         );
         self::registerCounter(
             'bot_revert_decisions_total',
@@ -128,18 +118,15 @@ class Metrics
         );
         self::registerCounter(
             'bot_reverts_attempted_total',
-            'Total revert attempts',
-            []
+            'Total revert attempts'
         );
         self::registerCounter(
             'bot_reverts_succeeded_total',
-            'Total successful reverts',
-            []
+            'Total successful reverts'
         );
         self::registerCounter(
             'bot_reverts_beaten_total',
-            'Total reverts beaten by another editor',
-            []
+            'Total reverts beaten by another editor'
         );
         self::registerCounter(
             'bot_reverts_skipped_total',
@@ -188,18 +175,15 @@ class Metrics
         );
         self::registerCounter(
             'bot_mysql_mw_connection_retries_total',
-            'Total replica MySQL connection retries',
-            []
+            'Total replica MySQL connection retries'
         );
         self::registerCounter(
             'bot_mysql_mw_credentials_exhausted_total',
-            'Total times all replica MySQL credentials were exhausted',
-            []
+            'Total times all replica MySQL credentials were exhausted'
         );
         self::registerCounter(
             'bot_mysql_cb_connection_failures_total',
-            'Total ClueBot MySQL connection failures',
-            []
+            'Total ClueBot MySQL connection failures'
         );
         self::registerCounter(
             'bot_mysql_cb_query_total',
@@ -227,45 +211,37 @@ class Metrics
         // Gauges
         self::registerGauge(
             'bot_tfa_last_reload_seconds',
-            'Unix timestamp of the last TFA page reload',
-            []
+            'Unix timestamp of the last TFA page reload'
         );
         self::registerGauge(
             'bot_whitelist_last_reload_seconds',
-            'Unix timestamp of the last successful huggle whitelist reload',
-            []
+            'Unix timestamp of the last successful huggle whitelist reload'
         );
         self::registerGauge(
             'bot_whitelist_entries',
-            'Current number of entries in the huggle whitelist',
-            []
+            'Current number of entries in the huggle whitelist'
         );
         self::registerGauge(
             'bot_run_enabled',
-            'Whether the bot run flag is currently enabled (1) or disabled (0)',
-            []
+            'Whether the bot run flag is currently enabled (1) or disabled (0)'
         );
         self::registerGauge(
             'bot_last_contribution_time',
-            'Unix timestamp of the last bot contribution',
-            []
+            'Unix timestamp of the last bot contribution'
         );
         self::registerGauge(
             'bot_start_time_seconds',
-            'Unix timestamp of the bot process start time',
-            []
+            'Unix timestamp of the bot process start time'
         );
         self::registerGauge(
             'bot_forks_total',
-            'Current number of active forked child processes',
-            []
+            'Current number of active forked child processes'
         );
 
         // Histograms
         self::registerHistogram(
             'bot_edit_score',
             'Distribution of ANN vandalism scores per edit',
-            [],
             [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50,
              0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00]
         );
@@ -308,7 +284,7 @@ class Metrics
     private static function registerCounter(
         string $name,
         string $help,
-        array $labelNames,
+        array $labelNames = [],
         array $seedLabelValues = []
     ): void {
         self::$definitions[$name] = [
@@ -319,18 +295,18 @@ class Metrics
         ];
     }
 
-    private static function registerGauge(string $name, string $help, array $labelNames): void
+    private static function registerGauge(string $name, string $help, array $labelNames = []): void
     {
         self::$definitions[$name] = ['type' => 'gauge', 'help' => $help, 'labels' => $labelNames];
     }
 
-    private static function registerHistogram(string $name, string $help, array $labelNames, array $buckets): void
+    private static function registerHistogram(string $name, string $help, array $buckets, array $labelNames = []): void
     {
         self::$definitions[$name] = [
             'type' => 'histogram',
             'help' => $help,
-            'labels' => $labelNames,
-            'buckets' => $buckets
+            'buckets' => $buckets,
+            'labels' => $labelNames
         ];
     }
 
