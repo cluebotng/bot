@@ -50,7 +50,11 @@ class Metrics
         self::registerCounter(
             'bot_stream_events_skipped_total',
             'Total events skipped at the stream level',
-            ['reason']
+            ['event_type']
+        );
+        self::registerCounter(
+            'bot_stream_events_failed_parsing_total',
+            'Total events which could not be parsed',
         );
         self::registerCounter(
             'bot_edits_received_total',

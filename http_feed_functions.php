@@ -173,13 +173,13 @@ class HttpFeed
     {
         global $logger;
 
-        Metrics::increment('bot_stream_events_received_total', [$event['type'] ?? 'unknown']);
+        Metrics::increment('bot_stream_events_received_total', [$event['type']]);
 
         // Skip these types, they don't directly have revisions, no point spending time constructing
         // an artificial url to throw them away in the namespace check later.
-        if ($event['type'] === 'log') {
+        if (in_array($event['type'], ['log', 'categorize', 'external'])) {
             $logger->debug('Skipping due to event type: ' . print_r($event, true));
-            Metrics::increment('bot_stream_events_skipped_total', ['event_type_log']);
+            Metrics::increment('bot_stream_events_skipped_total', [$event['type']]);
             return;
         }
 
@@ -239,7 +239,7 @@ class HttpFeed
                 $old_revid = $parsedUrlParams['oldid'] ?? 0;
             } else {
                 $logger->error('Could not determine revision IDs for event: ' . print_r($event, true));
-                Metrics::increment('bot_stream_events_skipped_total', ['no_revision_ids']);
+                Metrics::increment('bot_stream_events_failed_parsing_total');
                 return;
             }
         }
