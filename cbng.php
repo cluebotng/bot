@@ -116,17 +116,19 @@ function parseFeedData($feedData)
     }
 
     $cutoff_timestamp = $feedData['timestamp'] - (14 * 86400);
-    $cb = getCbData(
+    $cb = ReplicaDb::getCbData(
         $feedData['user'],
         $feedData['namespaceid'],
         $feedData['title'],
         $cutoff_timestamp
     );
     if (
-        !(isset($cb['user_edit_count'])
-        and isset($cb['user_distinct_pages'])
-        and isset($cb['user_warns'])
-        and isset($cb['user_reg_time']))
+        $cb == null or !(
+            isset($cb['user_edit_count'])
+            and isset($cb['user_distinct_pages'])
+            and isset($cb['user_warns'])
+            and isset($cb['user_reg_time'])
+        )
     ) {
         $logger->warning(
             "Failed to get user info",
