@@ -102,7 +102,7 @@ class Action
                     false
                 ) === true
             ) {
-                Metrics::set('bot_last_contribution_seconds', time());
+                Metrics::set('bot_last_contribution_time', time());
             }
         }
     }
@@ -126,7 +126,7 @@ class Action
                 false
             ) === true
         ) {
-            Metrics::set('bot_last_contribution_seconds', time());
+            Metrics::set('bot_last_contribution_time', time());
         }
     }
 
@@ -185,7 +185,7 @@ class Action
             'Thanks, [[WP:CBNG|' . Config::$user . ']]. (' . $change['mysqlid'] . ') (Bot)',
         );
         if ($ret === true) {
-            Metrics::set('bot_last_contribution_seconds', time());
+            Metrics::set('bot_last_contribution_time', time());
         }
         return $ret;
     }
