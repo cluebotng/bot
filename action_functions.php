@@ -89,37 +89,45 @@ class Action
     {
         $aivdata = Api::$q->getpage('Wikipedia:Administrator_intervention_against_vandalism/TB2');
         if (!preg_match('/' . preg_quote($change['user'], '/') . '/i', $aivdata)) {
-            Api::$a->edit(
-                'Wikipedia:Administrator_intervention_against_vandalism/TB2',
-                $aivdata . "\n\n" . '* {{' .
-                (filter_var($change['user'], FILTER_VALIDATE_IP) ? 'IPvandal' : 'Vandal') .
-                '|' . $change['user'] . '}}'
-                . ' - ' . $report . ' (Automated) ~~~~' . "\n",
-                'Automatically reporting [[Special:Contributions/' . $change['user'] . ']].' .
-                ' (bot)',
-                false,
-                false
-            );
+            if (
+                Api::$a->edit(
+                    'Wikipedia:Administrator_intervention_against_vandalism/TB2',
+                    $aivdata . "\n\n" . '* {{' .
+                    (filter_var($change['user'], FILTER_VALIDATE_IP) ? 'IPvandal' : 'Vandal') .
+                    '|' . $change['user'] . '}}'
+                    . ' - ' . $report . ' (Automated) ~~~~' . "\n",
+                    'Automatically reporting [[Special:Contributions/' . $change['user'] . ']].' .
+                    ' (bot)',
+                    false,
+                    false
+                ) === true
+            ) {
+                Metrics::set('bot_last_contribution_seconds', time());
+            }
         }
     }
 
     private static function warn($change, $report, $content, $warning)
     {
-        $ret = Api::$a->edit(
-            'User talk:' . $change['user'],
-            $content . "\n\n"
-            . '{{subst:User:' . Config::$user . '/Warnings/Warning'
-            . '|1=' . $warning
-            . '|2=' . str_replace('File:', ':File:', $change['namespaced_title'])
-            . '|3=' . $report
-            . ' <!{{subst:ns:0}}-- MySQL ID: ' . $change['mysqlid'] . ' --{{subst:ns:0}}>'
-            . '|4=' . $change['mysqlid']
-            . '}} ~~~~'
-            . "\n",
-            'Warning [[Special:Contributions/' . $change['user'] . '|' . $change['user'] . ']] - #' . $warning,
-            false,
-            false
-        );
+        if (
+            Api::$a->edit(
+                'User talk:' . $change['user'],
+                $content . "\n\n"
+                . '{{subst:User:' . Config::$user . '/Warnings/Warning'
+                . '|1=' . $warning
+                . '|2=' . str_replace('File:', ':File:', $change['namespaced_title'])
+                . '|3=' . $report
+                . ' <!{{subst:ns:0}}-- MySQL ID: ' . $change['mysqlid'] . ' --{{subst:ns:0}}>'
+                . '|4=' . $change['mysqlid']
+                . '}} ~~~~'
+                . "\n",
+                'Warning [[Special:Contributions/' . $change['user'] . '|' . $change['user'] . ']] - #' . $warning,
+                false,
+                false
+            ) === true
+        ) {
+            Metrics::set('bot_last_contribution_seconds', time());
+        }
     }
 
     public static function doRevert($change, $score)
@@ -168,7 +176,7 @@ class Action
             $logger->warning('Faking revert due to configuration', ['revision_id' => $change['revid']]);
             return true;
         }
-        return Api::$a->rollback(
+        $ret = Api::$a->rollback(
             $change['namespaced_title'],
             $change['user'],
             'Reverting possible vandalism by [[Special:Contribs/' . $change['user'] . '|' . $change['user'] . ']] ' .
@@ -176,6 +184,10 @@ class Action
             '[[WP:CBFP|Report False Positive?]] ' .
             'Thanks, [[WP:CBNG|' . Config::$user . ']]. (' . $change['mysqlid'] . ') (Bot)',
         );
+        if ($ret === true) {
+            Metrics::set('bot_last_contribution_seconds', time());
+        }
+        return $ret;
     }
 
     public static function shouldRevert($change)
