@@ -58,7 +58,7 @@ function fetchRevisionData($url)
         }
 
         // Try again after a short wait - hopefully the change has replicated
-        sleep(1);
+        sleep(10);
     }
 
     return $page;
