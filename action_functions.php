@@ -122,7 +122,7 @@ class Action
         );
     }
 
-    public static function doRevert($change)
+    public static function doRevert($change, $score)
     {
         global $logger;
         $rev = Api::$a->revisions($change['namespaced_title'], 5, 'older', false, null, true);
