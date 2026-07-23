@@ -174,7 +174,7 @@ class Process
                 ['revision_id' => $change['revid'], 'score' => $score, 'user' => $change['user']]
             );
             Metrics::increment('bot_reverts_attempted_total');
-            $rbret = Action::doRevert($change);
+            $rbret = Action::doRevert($change, $score);
             if ($rbret !== false) {
                 Metrics::increment('bot_reverts_succeeded_total');
                 Relay::publishEdit($change, $score, true, $revertReason);
