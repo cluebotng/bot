@@ -89,6 +89,7 @@ class ReplicaDb
                 Metrics::increment('bot_mysql_mw_query_failures_total', [$identifier, 'no_data']);
                 return null;
             }
+            Metrics::increment('bot_mysql_mw_query_total', [$identifier]);
             return $res;
         } catch (mysqli_sql_exception $e) {
             if ($e->getCode() == 1969) {
