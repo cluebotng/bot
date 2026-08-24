@@ -84,13 +84,18 @@ class ReplicaDb
         global $logger;
         try {
             $res = mysqli_query($mw_mysql, $sql);
-            if ($res === false) {
-                $logger->warning("$identifier query returned no data for $context: " . mysqli_error($mw_mysql));
+            if ($res !== false) {
+                $data = mysqli_fetch_assoc($res);
+                if ($data !== null) {
+                    Metrics::increment('bot_mysql_mw_query_total', [$identifier]);
+                    return $data;
+                }
+                $logger->warning("$identifier query returned no data for $context");
                 Metrics::increment('bot_mysql_mw_query_failures_total', [$identifier, 'no_data']);
                 return null;
             }
-            Metrics::increment('bot_mysql_mw_query_total', [$identifier]);
-            return $res;
+            $logger->error("$identifier query failed for $context: " . mysqli_error($mw_mysql));
+            Metrics::increment('bot_mysql_mw_query_failures_total', [$identifier, 'error']);
         } catch (mysqli_sql_exception $e) {
             if ($e->getCode() == 1969) {
                 $logger->warning("$identifier query timed out for $context");
@@ -99,8 +104,8 @@ class ReplicaDb
                 $logger->error("$identifier query returned an error for $context: " . $e->getMessage());
                 Metrics::increment('bot_mysql_mw_query_failures_total', [$identifier, 'error']);
             }
-            return null;
         }
+        return null;
     }
 
     private static function parseMwTimestamp(string $timestamp): int
@@ -110,7 +115,7 @@ class ReplicaDb
 
     private static function getPageMetadata($mw_mysql, $nsid, $title)
     {
-        $res = self::runQuery(
+        $data = self::runQuery(
             $mw_mysql,
             'page_metadata',
             "$title ($nsid)",
@@ -126,19 +131,18 @@ class ReplicaDb
             '  `page_title` = "' . mysqli_real_escape_string($mw_mysql, $title) . '"' .
             ')'
         );
-        $d = $res !== null ? mysqli_fetch_assoc($res) : null;
-        if ($d === null) {
+        if ($data === null) {
             return ['page_made_time' => null, 'creator' => null];
         }
         return [
-            'page_made_time' => self::parseMwTimestamp($d['rev_timestamp']),
-            'creator' => $d['actor_name'],
+            'page_made_time' => self::parseMwTimestamp($data['rev_timestamp']),
+            'creator' => $data['actor_name'],
         ];
     }
 
     private static function getPageRecentEdits($mw_mysql, $nsid, $title, $timestamp)
     {
-        $res = self::runQuery(
+        $data = self::runQuery(
             $mw_mysql,
             'page_recent_edits',
             "$title ($nsid) > $timestamp",
@@ -152,16 +156,12 @@ class ReplicaDb
             '" AND `rev_timestamp` > "' .
             mysqli_real_escape_string($mw_mysql, gmdate('YmdHis', $timestamp)) . '"'
         );
-        if ($res === null) {
-            return null;
-        }
-        $d = mysqli_fetch_assoc($res);
-        return $d !== null ? $d['count'] : null;
+        return $data !== null ? $data['count'] : null;
     }
 
     private static function getPageRecentReverts($mw_mysql, $nsid, $title, $timestamp)
     {
-        $res = self::runQuery(
+        $data = self::runQuery(
             $mw_mysql,
             'page_recent_reverts',
             "$title ($nsid) > $timestamp",
@@ -177,16 +177,12 @@ class ReplicaDb
             mysqli_real_escape_string($mw_mysql, gmdate('YmdHis', $timestamp)) .
             "' AND `comment_text` LIKE 'Revert%'"
         );
-        if ($res === null) {
-            return null;
-        }
-        $d = mysqli_fetch_assoc($res);
-        return $d !== null ? $d['count'] : null;
+        return $data !== null ? $data['count'] : null;
     }
 
     private static function getUserRegistration($mw_mysql, $user)
     {
-        $res = self::runQuery(
+        $data = self::runQuery(
             $mw_mysql,
             'user_registration',
             $user,
@@ -194,19 +190,18 @@ class ReplicaDb
             'SELECT `user_registration`, `user_editcount` FROM `user` WHERE `user_name` = "' .
             mysqli_real_escape_string($mw_mysql, $user) . '"'
         );
-        $d = $res !== null ? mysqli_fetch_assoc($res) : null;
-        if ($d === null) {
+        if ($data === null) {
             return ['user_reg_time' => null, 'user_edit_count' => null];
         }
         return [
-            'user_reg_time' => $d['user_registration'] ? self::parseMwTimestamp($d['user_registration']) : null,
-            'user_edit_count' => $d['user_editcount'],
+            'user_reg_time' => $data['user_registration'] ? self::parseMwTimestamp($data['user_registration']) : null,
+            'user_edit_count' => $data['user_editcount'],
         ];
     }
 
     private static function getUserRegistrationViaRevision($mw_mysql, $user)
     {
-        $res = self::runQuery(
+        $data = self::runQuery(
             $mw_mysql,
             'user_registration_via_revision',
             $user,
@@ -216,16 +211,12 @@ class ReplicaDb
             ' WHERE `actor_name` = "' .
             mysqli_real_escape_string($mw_mysql, $user) . '" ORDER BY `rev_timestamp` LIMIT 0,1'
         );
-        if ($res === null) {
-            return null;
-        }
-        $d = mysqli_fetch_assoc($res);
-        return $d !== null ? self::parseMwTimestamp($d['rev_timestamp']) : null;
+        return $data !== null ? self::parseMwTimestamp($data['rev_timestamp']) : null;
     }
 
     private static function getUserWarningsCount($mw_mysql, $userPage)
     {
-        $res = self::runQuery(
+        $data = self::runQuery(
             $mw_mysql,
             'user_warnings_count',
             $userPage,
@@ -238,16 +229,12 @@ class ReplicaDb
             "' AND (`comment_text` LIKE '%warning%' OR `comment_text`" .
             " LIKE 'General note: Nonconstructive%')"
         );
-        if ($res === null) {
-            return null;
-        }
-        $d = mysqli_fetch_assoc($res);
-        return $d !== null ? $d['count'] : null;
+        return $data !== null ? $data['count'] : null;
     }
 
     private static function getUserDistinctPages($mw_mysql, $userPage)
     {
-        $res = self::runQuery(
+        $data = self::runQuery(
             $mw_mysql,
             'user_distinct_pages',
             $userPage,
@@ -256,11 +243,7 @@ class ReplicaDb
             ' `revision_userindex` JOIN `actor_revision` ON `actor_id` = `rev_actor`' .
             " WHERE `actor_name` = '" . mysqli_real_escape_string($mw_mysql, $userPage) . "'"
         );
-        if ($res === null) {
-            return null;
-        }
-        $d = mysqli_fetch_assoc($res);
-        return $d !== null ? $d['count'] : null;
+        return $data !== null ? $data['count'] : null;
     }
 
     public static function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
