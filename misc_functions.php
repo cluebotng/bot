@@ -68,6 +68,7 @@ function doInit()
     global $logger;
     Config::init();
     Metrics::init();
+    Metrics::set('bot_start_time_seconds', time());
 
     Api::init($logger);
     if (!Api::$a->login(Config::$user, Config::$pass)) {
