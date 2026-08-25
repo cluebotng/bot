@@ -255,6 +255,10 @@ class Metrics
             'bot_forks_total',
             'Current number of active forked child processes'
         );
+        self::registerGauge(
+            'bot_stream_pause_status',
+            'Status of the bot stream',
+        );
 
         // Histograms
         self::registerHistogram(

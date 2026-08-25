@@ -42,6 +42,12 @@ function refreshDataTick()
             Globals::$tfa = $tfam[1];
         }
     }
+
+    if (!Globals::$replica_lag_check_time || Globals::$replica_lag_check_time + 60 <= time()) {
+        $logger->debug('Updating replica lag');
+        checkReplicaLag();
+        Globals::$replica_lag_check_time = time();
+    }
 }
 
 function refreshRunFlag()
@@ -60,6 +66,28 @@ function loadHuggleWhitelist()
         Metrics::set('bot_whitelist_entries', (float)count(Globals::$wl));
     } else {
         $logger->warning('Failed to load huggle whitelist');
+    }
+}
+
+function checkReplicaLag()
+{
+    global $logger;
+    $replication_lag = ReplicaDb::getCurrentReplicaLag();
+    if ($replication_lag >= Config::$mw_mysql_replication_lag_max) {
+        if (!HttpFeed::isPaused()) {
+            $logger->warning(
+                "Replica lag is more than " . Config::$mw_mysql_replication_lag_max .
+                ", pausing feed: " . $replication_lag
+            );
+            HttpFeed::pause();
+        }
+        return;
+    } elseif (HttpFeed::isPaused() && $replication_lag <= Config::$mw_mysql_replication_lag_min) {
+        $logger->notice(
+            "Replica lag is less than " . Config::$mw_mysql_replication_lag_min .
+            " seconds, resuming feed: " . $replication_lag
+        );
+        HttpFeed::resume();
     }
 }
 
