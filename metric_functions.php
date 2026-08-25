@@ -241,7 +241,9 @@ class Metrics
         );
         self::registerGauge(
             'bot_last_contribution_time',
-            'Unix timestamp of the last bot contribution'
+            'Unix timestamp of the last bot contribution',
+            [],
+            false,
         );
         self::registerGauge(
             'bot_start_time_seconds',
