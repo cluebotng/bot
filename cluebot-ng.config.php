@@ -51,6 +51,9 @@ class Config
     public static $metrics_port = 9095;
     // Bots which are spikey in changes and have very large edit counts
     public static $bot_whitelist = ['InternetArchiveBot', 'AnomieBOT', 'Jevansen'];
+    // Internal values
+    public static $mw_mysql_replication_lag_min = 10;
+    public static $mw_mysql_replication_lag_max = 120;
 
     public static function init()
     {

@@ -246,6 +246,28 @@ class ReplicaDb
         return $data !== null ? $data['count'] : null;
     }
 
+    public static function getCurrentReplicaLag()
+    {
+        global $logger;
+        $mw_mysql = self::connect();
+
+        $current_lag = 0;
+        try {
+            $res = mysqli_query($mw_mysql, 'SELECT lag FROM heartbeat_p.heartbeat WHERE shard = "s1" LIMIT 1');
+            if ($res !== false) {
+                $row = mysqli_fetch_assoc($res);
+                if ($row !== null) {
+                    $current_lag = $row['lag'];
+                }
+            }
+        } catch (mysqli_sql_exception $e) {
+            $logger->error("replica lag query returned an error: " . $e->getMessage());
+        }
+
+        mysqli_close($mw_mysql);
+        return $current_lag;
+    }
+
     public static function getCbData($user = '', $nsid = '', $title = '', $timestamp = '')
     {
         $mw_mysql = self::connect();

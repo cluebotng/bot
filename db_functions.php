@@ -89,6 +89,28 @@ class Db
         mysqli_close($cb_mysql);
     }
 
+    public static function getLastVandalismTime()
+    {
+        $cb_mysql = self::connect();
+        $res = self::runQuery(
+            $cb_mysql,
+            'vandalism_last_timestamp',
+            'health_check',
+            'SELECT `timestamp` FROM `vandalism` ORDER BY `id` DESC LIMIT 1'
+        );
+
+        $timestamp = null;
+        if ($res !== false) {
+            $row = mysqli_fetch_assoc($res);
+            if ($row !== null) {
+                $timestamp = strtotime($row['timestamp']);
+            }
+        }
+
+        mysqli_close($cb_mysql);
+        return $timestamp;
+    }
+
     // Returns nothing
     public static function vandalismRevertBeaten($edit_id, $title, $user, $diff)
     {

@@ -27,6 +27,7 @@ class HttpFeed
     private static $lastEventId = null;
     private static $queue = [];
     private static $running = true;
+    private static $paused = false;
     private static $lastCheckpointTime = 0;
 
     public static function stream()
@@ -41,6 +42,12 @@ class HttpFeed
         $recentAttempts = 0;
         $handle_interruption_gracefully = false;
         while (self::$running) {
+            if (self::$paused) {
+                sleep(60);
+                refreshDataTick();
+                continue;
+            }
+
             $recentAttempts++;
             [$uptime, $handle_interruption_gracefully] = self::connect($handle_interruption_gracefully);
             if (!self::$running) {
@@ -55,6 +62,31 @@ class HttpFeed
         }
 
         $logger->info('EventStream stopped');
+    }
+
+    public static function isPaused()
+    {
+        return self::$paused;
+    }
+
+    public static function pause()
+    {
+        global $logger;
+        if (!self::$paused) {
+            $logger->info('HttpFeed paused');
+            Metrics::set('bot_stream_pause_status', 1);
+            self::$paused = true;
+        }
+    }
+
+    public static function resume()
+    {
+        global $logger;
+        if (self::$paused) {
+            $logger->info('HttpFeed resumed');
+            Metrics::set('bot_stream_pause_status', 0);
+            self::$paused = false;
+        }
     }
 
     public static function shutdown()
@@ -120,24 +152,25 @@ class HttpFeed
             }
             refreshDataTick();
             Process::dispatchPending();
-        } while ($running > 0 && self::$running);
+        } while ($running > 0 && self::$running && !self::$paused);
 
         $uptime = time() - $start_time;
-        $handle_interruption_gracefully = false;
-
-        $info = curl_multi_info_read($mh);
-        if ($info !== false && $info['result'] !== CURLE_OK) {
-            // CURLE_HTTP2_STREAM - the server will close the connection after 15min.
-            // x-ref: https://wikitech.wikimedia.org/wiki/Event_Platform/EventStreams_HTTP_Service
-            //
-            // It appears to happen more often than 15min, so don't gate on time, just re-connect.
-            // As we are tracking the last ID, we shouldn't miss events, just be slower to see them.
-            $log_message = 'EventStream hit curl error: ' . curl_strerror($info['result']);
-            if ($info['result'] === 92) {
-                $logger->debug($log_message, ['uptime' => $uptime]);
-                $handle_interruption_gracefully = true;
-            } else {
-                $logger->error($log_message, ['uptime' => $uptime]);
+        $handle_interruption_gracefully = self::$paused ? true : false;
+        if ($handle_interruption_gracefully !== true) {
+            $info = curl_multi_info_read($mh);
+            if ($info !== false && $info['result'] !== CURLE_OK) {
+                // CURLE_HTTP2_STREAM - the server will close the connection after 15min.
+                // x-ref: https://wikitech.wikimedia.org/wiki/Event_Platform/EventStreams_HTTP_Service
+                //
+                // It appears to happen more often than 15min, so don't gate on time, just re-connect.
+                // As we are tracking the last ID, we shouldn't miss events, just be slower to see them.
+                $log_message = 'EventStream hit curl error: ' . curl_strerror($info['result']);
+                if ($info['result'] === 92) {
+                    $logger->debug($log_message, ['uptime' => $uptime]);
+                    $handle_interruption_gracefully = true;
+                } else {
+                    $logger->error($log_message, ['uptime' => $uptime]);
+                }
             }
         }
 
