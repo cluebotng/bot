@@ -245,7 +245,9 @@ class Metrics
         );
         self::registerGauge(
             'bot_start_time_seconds',
-            'Unix timestamp of the bot process start time'
+            'Unix timestamp of the bot process start time',
+            [],
+            false,
         );
         self::registerGauge(
             'bot_forks_total',
@@ -275,7 +277,10 @@ class Metrics
             $logger->debug('Failed to wipe metrics storage: ' . $e->getMessage());
         }
         foreach (self::$definitions as $metric_name => $definition) {
-            $labelValueSets = empty($definition['labels']) ? [[]] : ($definition['seed'] ?? []);
+            if (!$definition['seed']) {
+                continue;
+            }
+            $labelValueSets = empty($definition['labels']) ? [[]] : ($definition['seed_label_values'] ?? []);
             foreach ($labelValueSets as $labelValues) {
                 try {
                     if ($definition['type'] === 'counter') {
@@ -299,19 +304,21 @@ class Metrics
         string $name,
         string $help,
         array $labelNames = [],
-        array $seedLabelValues = []
+        array $seedLabelValues = [],
+        bool $seed = true,
     ): void {
         self::$definitions[$name] = [
             'type' => 'counter',
             'help' => $help,
             'labels' => $labelNames,
-            'seed' => $seedLabelValues,
+            'seed_label_values' => $seedLabelValues,
+            'seed' => $seed
         ];
     }
 
-    private static function registerGauge(string $name, string $help, array $labelNames = []): void
+    private static function registerGauge(string $name, string $help, array $labelNames = [], $seed = true): void
     {
-        self::$definitions[$name] = ['type' => 'gauge', 'help' => $help, 'labels' => $labelNames];
+        self::$definitions[$name] = ['type' => 'gauge', 'help' => $help, 'labels' => $labelNames, 'seed' => $seed];
     }
 
     private static function registerHistogram(string $name, string $help, array $buckets, array $labelNames = []): void
