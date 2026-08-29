@@ -9,7 +9,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["(^|/)composer\\.json$"],
+      "managerFilePatterns": [
+        "/(^|/)composer\\.json$/"
+      ],
       "matchStrings": ["\"cluebotng/wikipedia\":\\s*\"(?<currentValue>[^\"]+)\""],
       "datasourceTemplate": "github-releases",
       "packageNameTemplate": "cluebotng/wikipedia",
