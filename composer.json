@@ -14,7 +14,7 @@
     ],
     "require": {
         "monolog/monolog": "^3.0",
-        "cluebotng/wikipedia": "^v2.1.1",
+        "cluebotng/wikipedia": "^v2.2.0",
         "promphp/prometheus_client_php": "^2.0",
         "ext-pcntl": "*",
         "ext-redis": "*",
