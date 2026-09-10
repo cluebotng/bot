@@ -7,7 +7,7 @@ jobs:
       contents: write
     steps:
       - name: Create GitHub release
-        uses: infrabits/ci-create-missing-release@9b9b256bbdf59a093f847f2d7fa18700eaadffa1 # main
+        uses: infrabits/ci-create-missing-release@28473a12792785aeaf0ad393cef6664653d32e61 # main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           tag: '${{ github.ref }}'
