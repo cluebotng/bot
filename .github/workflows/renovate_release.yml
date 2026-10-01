@@ -6,7 +6,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: infrabits/ci-create-renovate-release@fc576bc9707b246ea12f466a6e18b742815d73a7 # main
+      - uses: infrabits/ci-create-renovate-release@6b57bd8d9bde13270a96f1157424d0f83b3ea6e1 # main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
