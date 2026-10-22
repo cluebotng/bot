@@ -59,11 +59,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Build container
-        uses: infrabits/ci-pack@93fa3d43af2f12d29f38aaa22ee7a37709375be4 # main
+        uses: infrabits/ci-pack@e8c2279207c35ce602e9ab88f909625457c74046 # main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           image: ghcr.io/${{ github.repository }}:${{ matrix.target }}-${{ github.sha }}
           use_builder: ${{ matrix.target }}
           run_safety_checks: ${{ matrix.target == 'toolforge-stable' && 'true' || 'false' }}
-          buildpack: heroku/php
           runtime_release: ${{ github.sha }}
