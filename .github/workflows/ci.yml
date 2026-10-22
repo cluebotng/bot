@@ -47,18 +47,23 @@ jobs:
 
   build-container:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [toolforge-stable, toolforge-latest, upstream]
     permissions:
       security-events: write
+      packages: write
       pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Build container
-        uses: infrabits/ci-pack@8ea656a6e98961c8d290d0683fa61c65c002a74f # main
+        uses: infrabits/ci-pack@93fa3d43af2f12d29f38aaa22ee7a37709375be4 # main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          image: ghcr.io/${{ github.repository }}:${{ github.sha }}
-          use_builder: latest
+          image: ghcr.io/${{ github.repository }}:${{ matrix.target }}-${{ github.sha }}
+          use_builder: ${{ matrix.target }}
+          run_safety_checks: ${{ matrix.target == 'toolforge-stable' && 'true' || 'false' }}
           buildpack: heroku/php
-          publish_image: false
           runtime_release: ${{ github.sha }}
