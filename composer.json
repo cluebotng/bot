@@ -13,6 +13,7 @@
         }
     ],
     "require": {
+        "php": ">=8.5.12",
         "monolog/monolog": "^3.0",
         "cluebotng/wikipedia": "^v2.2.0",
         "promphp/prometheus_client_php": "^2.0",
@@ -25,7 +26,7 @@
     },
     "config": {
         "platform": {
-            "php": "8.4"
+            "php": "8.5.12"
         }
     },
     "license": "GNU General Public License"
