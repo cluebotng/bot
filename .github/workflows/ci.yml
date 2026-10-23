@@ -37,7 +37,7 @@ jobs:
 
       - name: PHP Lint
         run: |
-          composer exec phplint -- --exclude=vendor/
+          composer exec phplint -- lint --exclude=vendor/ .
         if: matrix.target == 'phplint'
 
       - name: PHP Code Sniff
