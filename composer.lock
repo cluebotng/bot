@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3c7db747087834ad3d2c74812a91c1de",
+    "content-hash": "8b873af04731063e419dc71d19954c31",
     "packages": [
         {
             "name": "amphp/amp",
@@ -979,7 +979,7 @@
             "version": "v2.2.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/cluebotng/wikipedia.git",
+                "url": "git@github.com:cluebotng/wikipedia.git",
                 "reference": "9457baf21e5e62812c00811058d84f5dca8e8826"
             },
             "dist": {
@@ -4023,6 +4023,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
+        "php": ">=8.5.12",
         "ext-pcntl": "*",
         "ext-redis": "*",
         "ext-mysqli": "*",
@@ -4031,7 +4032,7 @@
     },
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.4"
+        "php": "8.5.12"
     },
     "plugin-api-version": "2.9.0"
 }
