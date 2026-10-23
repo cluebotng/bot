@@ -3,10 +3,13 @@ on: { push: { branches: [ 'main' ] } }
 jobs:
   renovate-release:
     runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.renovate-release.outputs.tag_name }}
     permissions:
       contents: write
     steps:
-      - uses: infrabits/ci-create-renovate-release@6b57bd8d9bde13270a96f1157424d0f83b3ea6e1 # main
+      - id: renovate-release
+        uses: infrabits/ci-create-renovate-release@6b57bd8d9bde13270a96f1157424d0f83b3ea6e1 # main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
