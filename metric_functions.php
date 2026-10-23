@@ -333,7 +333,8 @@ class Metrics
             'type' => 'histogram',
             'help' => $help,
             'buckets' => $buckets,
-            'labels' => $labelNames
+            'labels' => $labelNames,
+            'seed' => false
         ];
     }
 
