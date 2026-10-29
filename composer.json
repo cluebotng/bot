@@ -3,8 +3,7 @@
     "description": "ClueBot NG - Bot",
     "require-dev": {
         "overtrue/phplint": "@stable",
-        "squizlabs/php_codesniffer": "^4.0",
-        "phpmd/phpmd" : "@stable"
+        "squizlabs/php_codesniffer": "^4.0"
     },
     "repositories": [
         {
