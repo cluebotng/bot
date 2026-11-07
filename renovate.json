@@ -2,8 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    "helpers:pinGitHubActionDigests",
-    "group:allNonMajor"
+    "helpers:pinGitHubActionDigests"
   ],
   "automerge": true,
   "automergeStrategy": "rebase",
@@ -24,6 +23,16 @@
       "matchManagers": ["composer"],
       "matchPackageNames": ["cluebotng/wikipedia"],
       "enabled": false
+    },
+    {
+      "description": "Group PHP updates",
+      "matchManagers": ["composer"],
+      "groupName": "PHP dependencies"
+    },
+    {
+      "description": "Group CI updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "CI dependencies"
     }
   ]
 }
