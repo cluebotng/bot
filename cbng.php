@@ -101,7 +101,7 @@ function parseFeedData($feedData)
     $feedData['namespaced_title'] = ($feedData['namespaceid'] == 0 ? '' : $feedData['namespace']) . $feedData['title'];
 
     $api = fetchRevisionData(
-        'https://en.wikipedia.org/w/api.php?action=query&rawcontinue=1&prop=revisions&titles=' .
+        'https://en.wikipedia.org/w/api.php?action=query&prop=revisions&titles=' .
         urlencode($feedData['namespaced_title']) .
         '&rvstartid=' . $feedData['revid'] . '&rvlimit=2&rvprop=timestamp|user|content&format=json',
     );
