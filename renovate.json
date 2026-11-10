@@ -34,5 +34,8 @@
       "matchManagers": ["github-actions"],
       "groupName": "CI dependencies"
     }
-  ]
+  ],
+  "lockFileMaintenance": {
+    "enabled": true
+  }
 }
