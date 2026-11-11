@@ -1822,16 +1822,16 @@
     "packages-dev": [
         {
             "name": "overtrue/phplint",
-            "version": "9.8.0",
+            "version": "9.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/overtrue/phplint.git",
-                "reference": "722f95a6c8924b9e0cfcbdd1e49bb8c31c858a77"
+                "reference": "bb918dfb1342421b8b14f543b743be3f4e18028f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/overtrue/phplint/zipball/722f95a6c8924b9e0cfcbdd1e49bb8c31c858a77",
-                "reference": "722f95a6c8924b9e0cfcbdd1e49bb8c31c858a77",
+                "url": "https://api.github.com/repos/overtrue/phplint/zipball/bb918dfb1342421b8b14f543b743be3f4e18028f",
+                "reference": "bb918dfb1342421b8b14f543b743be3f4e18028f",
                 "shasum": ""
             },
             "require": {
@@ -1896,7 +1896,7 @@
             ],
             "support": {
                 "issues": "https://github.com/overtrue/phplint/issues",
-                "source": "https://github.com/overtrue/phplint/tree/9.8.0"
+                "source": "https://github.com/overtrue/phplint/tree/9.8.1"
             },
             "funding": [
                 {
@@ -1904,8 +1904,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-19T15:13:11+00:00",
-            "published-time": "2026-10-19T15:17:39+00:00"
+            "time": "2026-11-11T05:30:23+00:00",
+            "published-time": "2026-11-11T05:37:18+00:00"
         },
         {
             "name": "psr/cache",
