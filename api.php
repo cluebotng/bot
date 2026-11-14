@@ -23,7 +23,7 @@ namespace CluebotNG;
 
 class Api
 {
-    private static $h;
+    public static $h;
     public static $a;
     public static $q;
 
