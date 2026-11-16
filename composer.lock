@@ -1409,16 +1409,16 @@
         },
         {
             "name": "monolog/monolog",
-            "version": "3.12.1",
+            "version": "3.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "d7059e4c691d05ea1222b5124bed0f961be46e15"
+                "reference": "1f5f55bb4a9a230ff6d8a4ceccea31d10b0142ac"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/d7059e4c691d05ea1222b5124bed0f961be46e15",
-                "reference": "d7059e4c691d05ea1222b5124bed0f961be46e15",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/1f5f55bb4a9a230ff6d8a4ceccea31d10b0142ac",
+                "reference": "1f5f55bb4a9a230ff6d8a4ceccea31d10b0142ac",
                 "shasum": ""
             },
             "require": {
@@ -1498,7 +1498,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Seldaek/monolog/issues",
-                "source": "https://github.com/Seldaek/monolog/tree/3.12.1"
+                "source": "https://github.com/Seldaek/monolog/tree/3.13.0"
             },
             "funding": [
                 {
@@ -1510,8 +1510,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-29T19:21:12+00:00",
-            "published-time": "2026-09-29T19:21:44+00:00"
+            "time": "2026-11-16T10:43:05+00:00",
+            "published-time": "2026-11-16T10:45:37+00:00"
         },
         {
             "name": "promphp/prometheus_client_php",
@@ -1822,16 +1822,16 @@
     "packages-dev": [
         {
             "name": "overtrue/phplint",
-            "version": "9.8.1",
+            "version": "9.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/overtrue/phplint.git",
-                "reference": "bb918dfb1342421b8b14f543b743be3f4e18028f"
+                "reference": "b8f8ad7306170c61142dc72487c58b7e667a0132"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/overtrue/phplint/zipball/bb918dfb1342421b8b14f543b743be3f4e18028f",
-                "reference": "bb918dfb1342421b8b14f543b743be3f4e18028f",
+                "url": "https://api.github.com/repos/overtrue/phplint/zipball/b8f8ad7306170c61142dc72487c58b7e667a0132",
+                "reference": "b8f8ad7306170c61142dc72487c58b7e667a0132",
                 "shasum": ""
             },
             "require": {
@@ -1896,7 +1896,7 @@
             ],
             "support": {
                 "issues": "https://github.com/overtrue/phplint/issues",
-                "source": "https://github.com/overtrue/phplint/tree/9.8.1"
+                "source": "https://github.com/overtrue/phplint/tree/9.8.2"
             },
             "funding": [
                 {
@@ -1904,8 +1904,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-11T05:30:23+00:00",
-            "published-time": "2026-11-11T05:37:18+00:00"
+            "time": "2026-11-16T05:23:21+00:00",
+            "published-time": "2026-11-16T05:25:17+00:00"
         },
         {
             "name": "psr/cache",
