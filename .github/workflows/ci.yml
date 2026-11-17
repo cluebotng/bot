@@ -59,7 +59,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Build container
-        uses: infrabits/ci-pack@3a88fca6bcda5a70548567f83e71c80afff792c1 # v2.8.0
+        uses: infrabits/ci-pack@23a29fee6d6f6d7ea571b87c786a6ad7fcd6e618 # v2.9.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           image: ghcr.io/${{ github.repository }}:${{ matrix.target }}-${{ github.sha }}
