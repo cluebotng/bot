@@ -10,7 +10,7 @@ jobs:
       pull-requests: read
     steps:
       - id: renovate-release
-        uses: infrabits/ci-create-renovate-release@b7f4832b2f557608a13a04b6b9a0da8a2bc5f7ed # v2.0.0
+        uses: infrabits/ci-create-renovate-release@2fc53eb4d5048f4375dc3fe7ec0f76d31d573d2c # v2.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
