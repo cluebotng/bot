@@ -37,6 +37,11 @@
       "enabled": false
     },
     {
+      "description": "Keep the PHP platform on 8.5, inline with require",
+      "matchDepNames": ["php-platform"],
+      "allowedVersions": "<8.6.0"
+    },
+    {
       "description": "Group PHP updates",
       "matchManagers": ["composer"],
       "groupName": "PHP dependencies"
