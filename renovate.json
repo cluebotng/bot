@@ -16,6 +16,18 @@
       "datasourceTemplate": "github-releases",
       "packageNameTemplate": "cluebotng/wikipedia",
       "depNameTemplate": "cluebotng/wikipedia"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)composer\\.json$/"
+      ],
+      "matchStrings": ["\"platform\":\\s*\\{[^}]*\"php\":\\s*\"(?<currentValue>[^\"]+)\""],
+      "datasourceTemplate": "github-tags",
+      "packageNameTemplate": "php/php-src",
+      "depNameTemplate": "php-platform",
+      "extractVersionTemplate": "^php-(?<version>\\d+\\.\\d+\\.\\d+)$",
+      "versioningTemplate": "semver"
     }
   ],
   "packageRules": [
